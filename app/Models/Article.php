@@ -56,6 +56,14 @@ class Article extends Model
         return $this->hasMany(IncomeDetail::class, 'article_id');
     }
 
+    /**
+     * Get the discounts for the article.
+     */
+    public function discounts()
+    {
+        return $this->morphMany(Discount::class, 'discountable');
+    }
+
     public function setPriceIn(float $price): void
     {
         $this->price_in = $price;

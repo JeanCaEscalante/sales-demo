@@ -41,4 +41,12 @@ class Category extends Model
     {
         return $this->hasMany(Article::class);
     }
+
+    /**
+     * Get the discounts for the category.
+     */
+    public function discounts()
+    {
+        return $this->morphMany(Discount::class, 'discountable');
+    }
 }

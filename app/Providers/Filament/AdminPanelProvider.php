@@ -35,7 +35,12 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make()
                     ->label('Inventario')
                     ->icon('heroicon-c-rectangle-group'),
+                NavigationGroup::make()
+                    ->label('Configuración')
+                    ->icon('heroicon-o-cog-8-tooth'),
             ])
+
+            
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([

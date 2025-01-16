@@ -21,7 +21,7 @@ class TaxeResource extends Resource
 
     protected static ?string $label = 'Impuesto';
 
-    protected static ?string $navigationIcon = 'heroicon-o-percent-badge';
+    protected static ?string $navigationGroup = 'Configuración';
 
     public static function form(Form $form): Form
     {

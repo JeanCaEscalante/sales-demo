@@ -82,6 +82,7 @@ class ArticleResource extends Resource
     {
         return [
             RelationManagers\IncomesRelationManager::class,
+            RelationManagers\DiscountsRelationManager::class,
         ];
     }
 
