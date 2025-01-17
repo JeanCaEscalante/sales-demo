@@ -37,7 +37,7 @@ class Sale extends Model
         'receipt_series',
         'num_receipt',
         'tax',
-        'total_sale'
+        'total_sale',
     ];
 
     /**

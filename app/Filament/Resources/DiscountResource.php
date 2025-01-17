@@ -2,16 +2,14 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\TypeDiscount;
 use App\Filament\Resources\DiscountResource\Pages;
-use App\Filament\Resources\DiscountResource\RelationManagers;
 use App\Models\Discount;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class DiscountResource extends Resource
 {
@@ -29,7 +27,30 @@ class DiscountResource extends Resource
     {
         return $form
             ->schema([
-                //
+                Forms\Components\Select::make('discount_type')
+                    ->label('Tipo descuento')
+                    ->options(TypeDiscount::class)
+                    ->required(),
+                Forms\Components\TextInput::make('discount_code')
+                    ->label('Codigo descuento')
+                    ->required(),
+                Forms\Components\TextInput::make('discount_value')
+                    ->label('Valor del descuento')
+                    ->required(),
+                Forms\Components\DateTimePicker::make('start_date')
+                    ->label('Fecha de inicio')
+                    ->required(),
+                Forms\Components\DateTimePicker::make('end_date')
+                    ->label('Fecha de fin'),
+                Forms\Components\TextInput::make('min_amount')
+                    ->label('Valor del descuento')
+                    ->required(),
+                Forms\Components\TextInput::make('max_uses')
+                    ->label('Maximo de uso')
+                    ->required(),
+                Forms\Components\TextInput::make('used')
+                    ->label('Valor del descuento')
+                    ->required(),
             ]);
     }
 

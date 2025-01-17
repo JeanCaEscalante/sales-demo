@@ -3,15 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TaxeResource\Pages;
-use App\Filament\Resources\TaxeResource\RelationManagers;
 use App\Models\Taxe;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TaxeResource extends Resource
 {
@@ -42,7 +39,7 @@ class TaxeResource extends Resource
                 Forms\Components\Checkbox::make('is_composed')
                     ->label('Compuesto'),
                 Forms\Components\Checkbox::make('is_shipping')
-                    ->label('Envió')
+                    ->label('Envió'),
             ]);
     }
 
@@ -65,7 +62,7 @@ class TaxeResource extends Resource
                     ->label('Compuesto'),
                 Tables\Columns\IconColumn::make('is_shipping')
                     ->boolean()
-                    ->label('Envió')
+                    ->label('Envió'),
             ])
             ->filters([
                 //

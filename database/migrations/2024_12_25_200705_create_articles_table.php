@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('name');
             $table->bigInteger('stock');
             $table->double('price_in');
-            $table->double('price_out'); 
+            $table->double('price_out');
             $table->mediumText('description')->nullable();
             $table->timestamps();
 

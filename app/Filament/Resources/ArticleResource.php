@@ -28,9 +28,9 @@ class ArticleResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Select::make('category_id')
-                ->relationship(name: 'category', titleAttribute: 'category_name')
-                ->label('Categoría')
-                ->searchable(),
+                    ->relationship(name: 'category', titleAttribute: 'category_name')
+                    ->label('Categoría')
+                    ->searchable(),
                 Forms\Components\TextInput::make('code')
                     ->label('Código'),
                 Forms\Components\TextInput::make('name')

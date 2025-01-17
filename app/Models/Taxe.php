@@ -32,12 +32,11 @@ class Taxe extends Model
         'rate',
         'priority',
         'is_composed',
-        'is_shipping'
+        'is_shipping',
     ];
 
     protected $casts = [
         'is_composed' => 'boolean',
         'is_shipping' => 'boolean',
     ];
-
 }

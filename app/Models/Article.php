@@ -37,7 +37,7 @@ class Article extends Model
         'stock',
         'price_in',
         'price_out',
-        'description'
+        'description',
     ];
 
     /**
@@ -48,7 +48,7 @@ class Article extends Model
         return $this->belongsTo(Category::class, 'category_id');
     }
 
-     /**
+    /**
      * Get the order_history that owns the article.
      */
     public function incomes(): HasMany

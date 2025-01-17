@@ -36,10 +36,9 @@ class Discount extends Model
         'used',
         'discountable',
         'is_active',
-        'user_id'
+        'user_id',
     ];
 
-    
     protected $casts = [
         'is_active' => 'boolean',
     ];
