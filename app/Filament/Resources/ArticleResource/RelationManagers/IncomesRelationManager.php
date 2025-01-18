@@ -12,6 +12,10 @@ class IncomesRelationManager extends RelationManager
 {
     protected static string $relationship = 'incomes';
 
+    protected static ?string $label = 'Ingreso';
+
+    protected static ?string $title = 'Ingresos';
+
     public function form(Form $form): Form
     {
         return $form
@@ -38,18 +42,6 @@ class IncomesRelationManager extends RelationManager
             ])
             ->filters([
                 //
-            ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make(),
-            ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
             ]);
     }
 }

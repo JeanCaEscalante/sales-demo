@@ -7,6 +7,7 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 
 class DiscountsRelationManager extends RelationManager
 {
@@ -24,7 +25,15 @@ class DiscountsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return DiscountResource::table($table)->headerActions([
-            Tables\Actions\CreateAction::make(),
+            Tables\Actions\CreateAction::make()
+                ->mutateFormDataUsing(function (array $data): array {
+
+                    $data['used'] = 0;
+                    $data['is_active'] = true;
+                    $data['user_id'] = Auth::id();
+
+                    return $data;
+                }),
         ]);
     }
 }

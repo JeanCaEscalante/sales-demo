@@ -36,6 +36,8 @@ class SaleResource extends Resource
                         modifyQueryUsing: fn (Builder $query) => $query->where('type_subject', TypeSubject::Customer),
                     )
                     ->label('Cliente')
+                    ->searchable()
+                    ->preload()
                     ->required()
                     ->columnSpanFull(),
                 Forms\Components\Select::make('type_receipt')

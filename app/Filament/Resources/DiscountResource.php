@@ -30,10 +30,18 @@ class DiscountResource extends Resource
                 Forms\Components\Select::make('discount_type')
                     ->label('Tipo descuento')
                     ->options(TypeDiscount::class)
-                    ->required(),
+                    ->required()
+                    ->columnSpanFull(),
                 Forms\Components\TextInput::make('discount_code')
                     ->label('Codigo descuento')
-                    ->required(),
+                    ->required()
+                    ->suffixAction(
+                        Forms\Components\Actions\Action::make('codeGenerator')
+                            ->icon('heroicon-s-gift')
+                            ->action(function (Forms\Set $set) {
+                                $set('discount_code', self::generar_codigo_descuento());
+                            })
+                        ),
                 Forms\Components\TextInput::make('discount_value')
                     ->label('Valor del descuento')
                     ->required(),
@@ -43,13 +51,10 @@ class DiscountResource extends Resource
                 Forms\Components\DateTimePicker::make('end_date')
                     ->label('Fecha de fin'),
                 Forms\Components\TextInput::make('min_amount')
-                    ->label('Valor del descuento')
+                    ->label('Monto minimo')
                     ->required(),
                 Forms\Components\TextInput::make('max_uses')
                     ->label('Maximo de uso')
-                    ->required(),
-                Forms\Components\TextInput::make('used')
-                    ->label('Valor del descuento')
                     ->required(),
             ]);
     }
@@ -58,7 +63,16 @@ class DiscountResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('discount_type')
+                    ->label('Tipo descuento'),
+                Tables\Columns\TextColumn::make('discount_code')
+                    ->label('Codigo descuento'),
+                Tables\Columns\TextColumn::make('discount_value')
+                    ->label('Valor del descuento'),
+                Tables\Columns\TextColumn::make('start_date')
+                    ->label('Fecha de inicio'),
+                Tables\Columns\TextColumn::make('end_date')
+                    ->label('Fecha de fin'),
             ])
             ->filters([
                 //
@@ -87,5 +101,17 @@ class DiscountResource extends Resource
             'create' => Pages\CreateDiscount::route('/create'),
             'edit' => Pages\EditDiscount::route('/{record}/edit'),
         ];
+    }
+
+    public static function generar_codigo_descuento() {
+        $longitud = 8; // Longitud del código
+        $caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        $codigo = '';
+    
+        for ($i = 0; $i < $longitud; $i++) {
+            $codigo .= $caracteres[rand(0, strlen($caracteres) - 1)];
+        }
+    
+        return $codigo;
     }
 }
