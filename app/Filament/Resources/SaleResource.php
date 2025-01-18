@@ -47,17 +47,6 @@ class SaleResource extends Resource
                 Forms\Components\DatePicker::make('receipt_at')
                     ->label('Fecha')
                     ->required(),
-                Forms\Components\TextInput::make('receipt_series')
-                    ->label('Serie'),
-                Forms\Components\TextInput::make('num_receipt')
-                    ->label('Número')
-                    ->required(),
-                Forms\Components\TextInput::make('tax')
-                    ->label('Impuesto')
-                    ->numeric(),
-                Forms\Components\TextInput::make('total_sale')
-                    ->label('Total')
-                    ->numeric(),
                 Forms\Components\Repeater::make('details')
                     ->relationship()
                     ->label('Detalles')

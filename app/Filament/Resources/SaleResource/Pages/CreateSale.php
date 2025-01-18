@@ -14,8 +14,9 @@ class CreateSale extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        $data['receipt_series'] = null;
+        $data['num_receipt'] = null;
         $data['user_id'] = Auth::id();
-
         return $data;
     }
 
@@ -28,5 +29,7 @@ class CreateSale extends CreateRecord
             $service = new InventoryService($article);
             $service->removeFromStock($item->quantity);
         });
+
+
     }
 }

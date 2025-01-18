@@ -16,9 +16,9 @@ return new class extends Migration
             $table->unsignedBigInteger('subject_id');
             $table->unsignedBigInteger('user_id');
             $table->enum('type_receipt', ['bill', 'ticket']);
-            $table->string('receipt_series');
-            $table->string('num_receipt');
-            $table->double('tax');
+            $table->string('receipt_series')->nullable();
+            $table->string('num_receipt')->nullable();
+            $table->double('taxes');
             $table->double('total_sale');
             $table->timestamps();
 
