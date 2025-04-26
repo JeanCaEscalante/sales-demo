@@ -54,15 +54,27 @@ class SaleResource extends Resource
                         Forms\Components\Select::make('article_id')
                             ->relationship(name: 'article', titleAttribute: 'name')
                             ->label('Articulo')
+                            ->live()
                             ->required(),
+                        Forms\Components\Placeholder::make('price')
+                            ->label('Precio')
+                            ->content(function (Forms\Get $get) {
+                                if($get('article_id') !== null) 
+                                {
+                                    $article = \App\Models\Article::find($get('article_id'));
+                                    return $article->price_out; 
+                                }
+
+                                return '0.00';
+                            }),
                         Forms\Components\TextInput::make('quantity')
                             ->label('Cantidad')
                             ->numeric()
+                            ->afterStateUpdated(function (?string $state, ?string $old) {
+                               
+                            })
                             ->required(),
-                        Forms\Components\TextInput::make('sale_price')
-                            ->label('Precio Venta')
-                            ->numeric()
-                            ->required(),
+                       
                         Forms\Components\TextInput::make('discount')
                             ->label('Descuento')
                             ->numeric()
