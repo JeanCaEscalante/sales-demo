@@ -34,7 +34,11 @@ class ArticleResource extends Resource
                 Forms\Components\TextInput::make('code')
                     ->label('Código'),
                 Forms\Components\TextInput::make('name')
-                    ->label('Nombre'),
+                    ->label('Nombre')
+                    ->columnSpanFull(),
+                Forms\Components\Select::make('category_id')
+                    ->relationship(name: 'unit_measure', titleAttribute: 'description')
+                    ->label('Unidad de medida'),
                 Forms\Components\TextInput::make('stock')
                     ->label('Cantidad')
                     ->numeric(),

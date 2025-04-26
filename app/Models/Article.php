@@ -34,6 +34,7 @@ class Article extends Model
         'category_id',
         'code',
         'name',
+        'unit_measure_id',
         'stock',
         'price_in',
         'price_out',
@@ -47,6 +48,15 @@ class Article extends Model
     {
         return $this->belongsTo(Category::class, 'category_id');
     }
+
+    /**
+     * Get the unit measure that owns the article.
+     */
+    public function unit_measure(): BelongsTo
+    {
+        return $this->belongsTo(UnitMeasure::class, 'unit_measure_id');
+    }
+
 
     /**
      * Get the order_history that owns the article.
