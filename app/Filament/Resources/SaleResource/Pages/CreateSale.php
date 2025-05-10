@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\SaleResource\Pages;
+namespace App\Filament\Resources\DocumentResource\Pages;
 
-use App\Filament\Resources\SaleResource;
+use App\Filament\Resources\DocumentResource;
 use App\Models\Article;
 use App\Services\InventoryService;
 use Filament\Resources\Pages\CreateRecord;
@@ -10,13 +10,14 @@ use Illuminate\Support\Facades\Auth;
 
 class CreateSale extends CreateRecord
 {
-    protected static string $resource = SaleResource::class;
+    protected static string $resource = DocumentResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['receipt_series'] = null;
         $data['num_receipt'] = null;
         $data['user_id'] = Auth::id();
+
         return $data;
     }
 
@@ -29,7 +30,6 @@ class CreateSale extends CreateRecord
             $service = new InventoryService($article);
             $service->removeFromStock($item->quantity);
         });
-
 
     }
 }

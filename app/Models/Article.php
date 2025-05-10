@@ -57,7 +57,6 @@ class Article extends Model
         return $this->belongsTo(UnitMeasure::class, 'unit_measure_id');
     }
 
-
     /**
      * Get the order_history that owns the article.
      */

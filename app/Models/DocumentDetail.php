@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class SaleDetail extends Model
+class DocumentDetail extends Model
 {
     /**
      * The table associated with the model.
@@ -39,7 +39,7 @@ class SaleDetail extends Model
      */
     public function sale(): BelongsTo
     {
-        return $this->BelongsTo(Sale::class, 'sale_id');
+        return $this->BelongsTo(Document::class, 'sale_id');
     }
 
     /**

@@ -41,7 +41,7 @@ class DiscountResource extends Resource
                             ->action(function (Forms\Set $set) {
                                 $set('discount_code', self::generar_codigo_descuento());
                             })
-                        ),
+                    ),
                 Forms\Components\TextInput::make('discount_value')
                     ->label('Valor del descuento')
                     ->required(),
@@ -103,15 +103,16 @@ class DiscountResource extends Resource
         ];
     }
 
-    public static function generar_codigo_descuento() {
+    public static function generar_codigo_descuento()
+    {
         $longitud = 8; // Longitud del código
         $caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         $codigo = '';
-    
+
         for ($i = 0; $i < $longitud; $i++) {
             $codigo .= $caracteres[rand(0, strlen($caracteres) - 1)];
         }
-    
+
         return $codigo;
     }
 }

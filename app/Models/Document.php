@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Sale extends Model
+class Document extends Model
 {
     use HasUlids;
 
@@ -16,14 +16,14 @@ class Sale extends Model
      *
      * @var string
      */
-    protected $table = 'sales';
+    protected $table = 'documents';
 
     /**
      * The primary key associated with the table.
      *
      * @var string
      */
-    protected $primaryKey = 'sale_id';
+    protected $primaryKey = 'document_id';
 
     /**
      * The attributes that are mass assignable.
@@ -34,8 +34,8 @@ class Sale extends Model
         'subject_id',
         'user_id',
         'type_receipt',
-        'receipt_series',
-        'num_receipt',
+        'document_series',
+        'document_num',
         'tax',
         'total_sale',
     ];
@@ -53,7 +53,7 @@ class Sale extends Model
      */
     public function details(): HasMany
     {
-        return $this->hasMany(SaleDetail::class, 'sale_id');
+        return $this->hasMany(DocumentDetail::class, 'sale_id');
     }
 
     /**

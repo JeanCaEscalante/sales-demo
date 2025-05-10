@@ -2,18 +2,17 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\UnitMeasure;
+use Illuminate\Database\Seeder;
 
 class UnitMeasureSeeder extends Seeder
 {
     protected $units = [
         [
-           'constant' => 'UNIT_DEFAULT',
-           'description' => 'Unidades (por defecto)',
+            'constant' => 'UNIT_DEFAULT',
+            'description' => 'Unidades (por defecto)',
         ],
-        
+
         // Unidades de Peso
         [
             'constant' => 'UNIT_GRAMS',
@@ -65,15 +64,16 @@ class UnitMeasureSeeder extends Seeder
         ],
 
         //Otras unidades
-        [  
+        [
             'constant' => 'UNIT_HOURS',
             'description' => 'Horas',
         ],
         [
             'constant' => 'UNIT_OTHER',
             'description' => 'Otros',
-        ]
+        ],
     ];
+
     /**
      * Run the database seeds.
      */

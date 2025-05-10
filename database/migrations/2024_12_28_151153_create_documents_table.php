@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sales', function (Blueprint $table) {
-            $table->ulid('sale_id')->primary();
+        Schema::create('documents', function (Blueprint $table) {
+            $table->ulid('document_id')->primary();
             $table->unsignedBigInteger('subject_id');
             $table->unsignedBigInteger('user_id');
             $table->enum('type_receipt', ['bill', 'ticket']);
