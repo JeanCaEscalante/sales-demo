@@ -53,7 +53,7 @@ class Document extends Model
      */
     public function details(): HasMany
     {
-        return $this->hasMany(DocumentDetail::class, 'sale_id');
+        return $this->hasMany(DocumentDetail::class, 'document_id');
     }
 
     /**

@@ -12,14 +12,14 @@ class DocumentDetail extends Model
      *
      * @var string
      */
-    protected $table = 'sale_details';
+    protected $table = 'document_details';
 
     /**
      * The primary key associated with the table.
      *
      * @var string
      */
-    protected $primaryKey = 'sale_detail_id';
+    protected $primaryKey = 'document_detail_id';
 
     /**
      * The attributes that are mass assignable.
@@ -27,7 +27,7 @@ class DocumentDetail extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'sale_id',
+        'document_id',
         'article_id',
         'quantity',
         'sale_price',
@@ -37,9 +37,9 @@ class DocumentDetail extends Model
     /**
      * Get the detail for the income.
      */
-    public function sale(): BelongsTo
+    public function document(): BelongsTo
     {
-        return $this->BelongsTo(Document::class, 'sale_id');
+        return $this->BelongsTo(Document::class, 'document_id');
     }
 
     /**

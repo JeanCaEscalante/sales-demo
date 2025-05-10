@@ -177,7 +177,8 @@ class DocumentResource extends Resource
                             ->schema([
                                 Forms\Components\Tabs\Tab::make('Principales')
                                     ->schema([
-                                        Forms\Components\TextInput::make('invoice_series_code')->label('Lote')
+                                        Forms\Components\TextInput::make('invoice_series_code')
+                                            ->label('Lote')
                                             ->live()
                                             ->disabled()
                                             ->columnSpan(3),
@@ -248,7 +249,7 @@ class DocumentResource extends Resource
                                     ->tabs([
                                         Forms\Components\Tabs\Tab::make('Datos Principales')
                                             ->schema([
-                                                Forms\Components\Select::make('template_service')->label('Cargar plantilla del servicio o producto')
+                                                Forms\Components\Select::make('template_service')->label('Producto')
                                                     ->options([])
                                                     ->searchable(['name', 'firstSurname', 'taxNumber'])
                                                     ->loadingMessage('Cargando servicios...')
@@ -281,7 +282,7 @@ class DocumentResource extends Resource
                                                     ->default(0),
                                                     
                                                    
-                                            ])->columnSpanFull()->columnStart(1),
+                                            ]),
                                         Forms\Components\Tabs\Tab::make('Datos Opcionales')
                                             ->schema([
                                                 Forms\Components\Section::make('Detalles del Producto / Servicio')
@@ -290,7 +291,7 @@ class DocumentResource extends Resource
                                                         Forms\Components\TextInput::make('article_code')->label('Código de artículo'),
                                                     ]),
                                             ]),
-                                    ]),
+                                    ])->columnSpan(4),
                                     Forms\Components\Section::make('Precio del Servicio')
                                     ->schema([
                                         Forms\Components\TextInput::make('unit_price')->label('Precio Por Unidad')
@@ -303,7 +304,7 @@ class DocumentResource extends Resource
                                             })
                                             ->regex('/^[0-9,.]+$/')
                                             ->minValue(0)
-                                            ->prefix('€')
+                                            ->prefix('$')
                                             ->columnSpan(2),
                                             Forms\Components\TextInput::make('quantity')->label('Cantidad')
                                             ->required()
@@ -326,7 +327,7 @@ class DocumentResource extends Resource
                                             })
                                             ->regex('/^[0-9,.]+$/')
                                             ->minValue(0)
-                                            ->prefix('€')
+                                            ->prefix('$')
                                             ->columnSpan(2),
                                             Forms\Components\TextInput::make('tax_amount')->label('Cuota Repercutida')
                                           //->requiredIf('is_exempt_operation', false) Realizar una validacion acorde.
@@ -334,7 +335,7 @@ class DocumentResource extends Resource
                                             ->readOnly()
                                             ->live(onBlur: true)
                                             ->stripCharacters(',')
-                                            ->prefix('€')
+                                            ->prefix('$')
                                             ->columnSpan(2),
                                             Forms\Components\TextInput::make('surcharge_equivalence_amount')->label('Cuota Recargo Equivalencia')
                                             ->requiredIf('tax_regime_key', '18')
@@ -342,7 +343,7 @@ class DocumentResource extends Resource
                                             ->readOnly()
                                             ->live(onBlur: true)
                                             ->stripCharacters(',')
-                                            ->prefix('€')
+                                            ->prefix('$')
                                             ->columnSpan(2)
                                             ->hidden(fn ($get) => !in_array($get('operation_qualification'), ['S1', 'S2']) || $get('tax_type') !== '01' || $get('tax_regime_key') !== '18'),
                                             Forms\Components\TextInput::make('charged_amount')->label('Cargos a la Base Imponible')
@@ -350,14 +351,14 @@ class DocumentResource extends Resource
                                             ->placeholder(0)
                                             ->live(onBlur: true)
                                             ->stripCharacters(',')
-                                            ->prefix('€')
+                                            ->prefix('$')
                                             ->columnSpan(2),
                                             Forms\Components\TextInput::make('discount_amount')->label('Descuentos a la Base Imponible')
                                             ->readOnly()
                                             ->placeholder(0)
                                             ->live(onBlur: true)
                                             ->stripCharacters(',')
-                                            ->prefix('€')
+                                            ->prefix('$')
                                             ->columnSpan(2),
                                             Forms\Components\TextInput::make('net_amount')->label('Base Liquidable')
                                             ->required()
@@ -365,7 +366,7 @@ class DocumentResource extends Resource
                                             ->readOnly()
                                             ->live(onBlur: true)
                                             ->stripCharacters(',')
-                                            ->prefix('€')
+                                            ->prefix('$')
                                             ->columnSpan(4),
 
                                     ])->columns(4)->columnSpan(4),
@@ -387,25 +388,25 @@ class DocumentResource extends Resource
                             ->readOnly()
                             ->live(onBlur: true)
                             ->stripCharacters(',')
-                            ->prefix('€'),
+                            ->prefix('$'),
                             Forms\Components\TextInput::make('subtotal_taxes')->label('Subtotal de Impuestos')
                             ->placeholder(0)
                             ->readOnly()
                             ->live(onBlur: true)
                             ->stripCharacters(',')
-                            ->prefix('€'),
+                            ->prefix('$'),
                             Forms\Components\TextInput::make('subtotal_discounts')->label('Subtotal Descuentos')
                             ->placeholder(0)
                             ->readOnly()
                             ->live(onBlur: true)
                             ->stripCharacters(',')
-                            ->prefix('€'),
+                            ->prefix('$'),
                             Forms\Components\TextInput::make('total')->label('Total')
                             ->placeholder(0)
                             ->readOnly()
                             ->live(onBlur: true)
                             ->stripCharacters(',')
-                            ->prefix('€')
+                            ->prefix('$')
                             ->afterStateUpdated(function ($livewire, TextInput $component) {
                                 $livewire->validateOnly($component->getStatePath());
                             }),
