@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\TypeContact;
 use App\Enums\TypeDocument;
 use App\Filament\Resources\SupplierResource\Pages;
+use App\Filament\Resources\SupplierResource\RelationManagers;
 use App\Models\Supplier;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -78,20 +79,38 @@ class SupplierResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('type_document')
-                    ->label('Tipo documento'),
-                Tables\Columns\TextColumn::make('document')
-                    ->label('Documento'),
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Nombre'),
+                    ->label('Nombre')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('type_document')
+                    ->label('Tipo')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('document')
+                    ->label('Documento')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('payment_terms')
+                    ->label('Términos de Pago')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('purchases_sum_total_amount')
+                    ->label('Total Compras')
+                    ->sum('purchases', 'total_amount')
+                    ->money('USD')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('address')
-                    ->label('Dirección'),
+                    ->label('Dirección')
+                    ->limit(30)
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('type_document')
+                    ->label('Tipo de Documento')
+                    ->options(TypeDocument::class),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -103,7 +122,7 @@ class SupplierResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\PurchasesRelationManager::class,
         ];
     }
 

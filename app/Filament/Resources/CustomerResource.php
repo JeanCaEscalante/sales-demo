@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Enums\TypeContact;
 use App\Enums\TypeDocument;
 use App\Filament\Resources\CustomerResource\Pages;
+use App\Filament\Resources\CustomerResource\RelationManagers;
 use App\Models\Customer;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -80,20 +81,39 @@ class CustomerResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('type_document')
-                    ->label('Tipo documento'),
-                Tables\Columns\TextColumn::make('document')
-                    ->label('Documento'),
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Nombre'),
+                    ->label('Nombre')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('type_document')
+                    ->label('Tipo')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('document')
+                    ->label('Documento')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('credit_limit')
+                    ->label('Límite Crédito')
+                    ->money('USD')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('sales_sum_total_amount')
+                    ->label('Total Compras')
+                    ->sum('sales', 'total_amount')
+                    ->money('USD')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('address')
-                    ->label('Dirección'),
+                    ->label('Dirección')
+                    ->limit(30)
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('type_document')
+                    ->label('Tipo de Documento')
+                    ->options(TypeDocument::class),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -105,7 +125,7 @@ class CustomerResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\SalesRelationManager::class,
         ];
     }
 
