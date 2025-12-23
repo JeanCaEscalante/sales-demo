@@ -5,17 +5,16 @@ namespace App\Filament\Resources;
 use App\Enums\TypeContact;
 use App\Enums\TypeDocument;
 use App\Filament\Resources\SupplierResource\Pages;
-use App\Models\Subject;
+use App\Models\Supplier;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class SupplierResource extends Resource
 {
-    protected static ?string $model = Subject::class;
+    protected static ?string $model = Supplier::class;
 
     protected static ?string $navigationLabel = 'Proveedores';
 
@@ -44,6 +43,12 @@ class SupplierResource extends Resource
                     ->label('Dirección')
                     ->rows(4)
                     ->columnSpanFull(),
+                Forms\Components\TextInput::make('payment_terms')
+                    ->label('Términos de Pago'),
+                Forms\Components\Textarea::make('notes')
+                    ->label('Notas')
+                    ->rows(3)
+                    ->columnSpanFull(),
                 Forms\Components\Repeater::make('contacts')
                     ->relationship()
                     ->label('Contactos')
@@ -56,6 +61,13 @@ class SupplierResource extends Resource
                         Forms\Components\TextInput::make('contact')
                             ->label('Contacto')
                             ->required(),
+                        Forms\Components\TextInput::make('label')
+                            ->label('Etiqueta')
+                            ->placeholder('Ej: Oficina, Casa, Principal')
+                            ->maxLength(50),
+                        Forms\Components\Toggle::make('is_primary')
+                            ->label('Contacto Principal')
+                            ->default(false),
                     ])
                     ->columns(2)
                     ->columnSpanFull(),
@@ -104,9 +116,4 @@ class SupplierResource extends Resource
         ];
     }
 
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->where('type_subject', 'supplier');
-    }
 }

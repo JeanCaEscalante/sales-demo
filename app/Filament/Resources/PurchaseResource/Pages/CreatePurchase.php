@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Filament\Resources\PurchaseResource\Pages;
+
+use App\Filament\Resources\PurchaseResource;
+use App\Models\Product;
+use App\Services\InventoryService;
+use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\Auth;
+
+class CreatePurchase extends CreateRecord
+{
+    protected static string $resource = PurchaseResource::class;
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['user_id'] = Auth::id();
+
+        return $data;
+    }
+
+    protected function afterCreate(): void
+    {
+        $purchase = $this->getRecord();
+
+        $purchase->items->each(function ($item) {
+            $product = Product::find($item->product_id);
+            $inventoryService = new InventoryService($product);
+            $inventoryService->addToStock($item->quantity);
+            $inventoryService->updatePurchasePrice($item->unit_cost);
+            $inventoryService->updateSalePrice($item->suggested_price);
+        });
+    }
+}

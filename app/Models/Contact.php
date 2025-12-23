@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Contact extends Model
 {
@@ -30,16 +30,28 @@ class Contact extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'subject_id',
+        'contactable_id',
+        'contactable_type',
         'type_contact',
         'contact',
+        'label',
+        'is_primary',
     ];
 
     /**
-     * Get the subject that owns the contact.
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
      */
-    public function subject(): BelongsTo
+    protected $casts = [
+        'is_primary' => 'boolean',
+    ];
+
+    /**
+     * Get the parent contactable model (customer or supplier).
+     */
+    public function contactable(): MorphTo
     {
-        return $this->belongsTo(Subject::class);
+        return $this->morphTo();
     }
 }

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Category extends Model
+class Unit extends Model
 {
     use HasFactory;
 
@@ -15,14 +15,14 @@ class Category extends Model
      *
      * @var string
      */
-    protected $table = 'categories';
+    protected $table = 'units';
 
     /**
      * The primary key associated with the table.
      *
      * @var string
      */
-    protected $primaryKey = 'category_id';
+    protected $primaryKey = 'unit_id';
 
     /**
      * The attributes that are mass assignable.
@@ -30,23 +30,18 @@ class Category extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'category_name',
-        'description',
+        'code',
+        'name',
     ];
 
     /**
-     * Get the products for the category.
+     * Get the products for the unit.
      */
     public function products(): HasMany
     {
-        return $this->hasMany(Product::class, 'category_id');
-    }
-
-    /**
-     * Get the discounts for the category.
-     */
-    public function discounts()
-    {
-        return $this->morphMany(Discount::class, 'discountable');
+        return $this->hasMany(Product::class, 'unit_id');
     }
 }
+
+
+

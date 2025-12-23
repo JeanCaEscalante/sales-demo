@@ -2,75 +2,75 @@
 
 namespace Database\Seeders;
 
-use App\Models\UnitMeasure;
+use App\Models\Unit;
 use Illuminate\Database\Seeder;
 
 class UnitMeasureSeeder extends Seeder
 {
     protected $units = [
         [
-            'constant' => 'UNIT_DEFAULT',
-            'description' => 'Unidades (por defecto)',
+            'code' => 'pcs',
+            'name' => 'Piezas',
         ],
 
         // Unidades de Peso
         [
-            'constant' => 'UNIT_GRAMS',
-            'description' => 'Gramos',
+            'code' => 'g',
+            'name' => 'Gramos',
         ],
         [
-            'constant' => 'UNIT_KILOGRAMS',
-            'description' => 'Kilogramos',
+            'code' => 'kg',
+            'name' => 'Kilogramos',
         ],
         [
-            'constant' => 'UNIT_POUNDS',
-            'description' => 'Libras',
+            'code' => 'lb',
+            'name' => 'Libras',
         ],
         [
-            'constant' => 'UNIT_OUNCES',
-            'description' => 'Onzas',
+            'code' => 'oz',
+            'name' => 'Onzas',
         ],
 
         // Unidades de Volumen
         [
-            'constant' => 'UNIT_LITERS',
-            'description' => 'Litros',
+            'code' => 'L',
+            'name' => 'Litros',
         ],
         [
-            'constant' => 'UNIT_MILLILITERS',
-            'description' => 'Mililitros',
+            'code' => 'mL',
+            'name' => 'Mililitros',
         ],
         [
-            'constant' => 'UNIT_CUBICMETERS',
-            'description' => 'Metros Cúbicos',
+            'code' => 'm³',
+            'name' => 'Metros Cúbicos',
         ],
         [
-            'constant' => 'UNIT_GALLONS',
-            'description' => 'Galones',
+            'code' => 'gal',
+            'name' => 'Galones',
         ],
 
         // Unidades de Longitud
         [
-            'constant' => 'UNIT_METERS',
-            'description' => 'Metros',
+            'code' => 'm',
+            'name' => 'Metros',
         ],
         [
-            'constant' => 'UNIT_CENTIMITERS',
-            'description' => 'Centímetros',
+            'code' => 'cm',
+            'name' => 'Centímetros',
         ],
         [
-            'constant' => 'UNIT_INCHES',
-            'description' => 'Pulgadas',
+            'code' => 'in',
+            'name' => 'Pulgadas',
         ],
 
         //Otras unidades
         [
-            'constant' => 'UNIT_HOURS',
-            'description' => 'Horas',
+            'code' => 'hr',
+            'name' => 'Horas',
         ],
         [
-            'constant' => 'UNIT_OTHER',
-            'description' => 'Otros',
+            'code' => 'other',
+            'name' => 'Otros',
         ],
     ];
 
@@ -79,6 +79,6 @@ class UnitMeasureSeeder extends Seeder
      */
     public function run(): void
     {
-        UnitMeasure::insert($this->units);
+        Unit::insert($this->units);
     }
 }

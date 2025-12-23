@@ -5,17 +5,16 @@ namespace App\Filament\Resources;
 use App\Enums\TypeContact;
 use App\Enums\TypeDocument;
 use App\Filament\Resources\CustomerResource\Pages;
-use App\Models\Subject;
+use App\Models\Customer;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class CustomerResource extends Resource
 {
-    protected static ?string $model = Subject::class;
+    protected static ?string $model = Customer::class;
 
     protected static ?string $navigationLabel = 'Clientes';
 
@@ -44,6 +43,14 @@ class CustomerResource extends Resource
                     ->label('Dirección')
                     ->rows(4)
                     ->columnSpanFull(),
+                Forms\Components\TextInput::make('credit_limit')
+                    ->label('Límite de Crédito')
+                    ->numeric()
+                    ->prefix('$'),
+                Forms\Components\Textarea::make('notes')
+                    ->label('Notas')
+                    ->rows(3)
+                    ->columnSpanFull(),
                 Forms\Components\Repeater::make('contacts')
                     ->relationship()
                     ->label('Contactos')
@@ -56,6 +63,13 @@ class CustomerResource extends Resource
                         Forms\Components\TextInput::make('contact')
                             ->label('Contacto')
                             ->required(),
+                        Forms\Components\TextInput::make('label')
+                            ->label('Etiqueta')
+                            ->placeholder('Ej: Oficina, Casa, Principal')
+                            ->maxLength(50),
+                        Forms\Components\Toggle::make('is_primary')
+                            ->label('Contacto Principal')
+                            ->default(false),
                     ])
                     ->columns(2)
                     ->columnSpanFull(),
@@ -104,9 +118,4 @@ class CustomerResource extends Resource
         ];
     }
 
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->where('type_subject', 'customer');
-    }
 }

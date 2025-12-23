@@ -5,8 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-class Category extends Model
+class Customer extends Model
 {
     use HasFactory;
 
@@ -15,14 +16,14 @@ class Category extends Model
      *
      * @var string
      */
-    protected $table = 'categories';
+    protected $table = 'customers';
 
     /**
      * The primary key associated with the table.
      *
      * @var string
      */
-    protected $primaryKey = 'category_id';
+    protected $primaryKey = 'customer_id';
 
     /**
      * The attributes that are mass assignable.
@@ -30,23 +31,28 @@ class Category extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'category_name',
-        'description',
+        'type_document',
+        'document',
+        'name',
+        'address',
+        'credit_limit',
+        'notes',
     ];
 
     /**
-     * Get the products for the category.
+     * Get the contacts for the customer.
      */
-    public function products(): HasMany
+    public function contacts(): MorphMany
     {
-        return $this->hasMany(Product::class, 'category_id');
+        return $this->morphMany(Contact::class, 'contactable');
     }
 
     /**
-     * Get the discounts for the category.
+     * Get the sales for the customer.
      */
-    public function discounts()
+    public function sales(): HasMany
     {
-        return $this->morphMany(Discount::class, 'discountable');
+        return $this->hasMany(Sale::class, 'customer_id');
     }
 }
+

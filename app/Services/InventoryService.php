@@ -2,34 +2,34 @@
 
 namespace App\Services;
 
-use App\Models\Article;
+use App\Models\Product;
 
 class InventoryService
 {
-    private Article $article;
+    private Product $product;
 
-    public function __construct(Article $article)
+    public function __construct(Product $product)
     {
-        $this->article = $article;
+        $this->product = $product;
     }
 
-    public function updateIncomePrice(float $price)
+    public function updatePurchasePrice(float $price)
     {
-        $this->article->setPriceIn($price);
+        $this->product->setPriceIn($price);
     }
 
     public function updateSalePrice(float $price)
     {
-        $this->article->setPriceOut($price);
+        $this->product->setPriceOut($price);
     }
 
     public function addToStock(float $quantity)
     {
-        $this->article->increase($quantity);
+        $this->product->increase($quantity);
     }
 
     public function removeFromStock(float $quantity)
     {
-        $this->article->decrease($quantity);
+        $this->product->decrease($quantity);
     }
 }

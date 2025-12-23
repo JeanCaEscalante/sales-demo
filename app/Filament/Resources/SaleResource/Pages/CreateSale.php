@@ -1,21 +1,19 @@
 <?php
 
-namespace App\Filament\Resources\DocumentResource\Pages;
+namespace App\Filament\Resources\SaleResource\Pages;
 
-use App\Filament\Resources\DocumentResource;
-use App\Models\Article;
+use App\Filament\Resources\SaleResource;
+use App\Models\Product;
 use App\Services\InventoryService;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Auth;
 
 class CreateSale extends CreateRecord
 {
-    protected static string $resource = DocumentResource::class;
+    protected static string $resource = SaleResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['receipt_series'] = null;
-        $data['num_receipt'] = null;
         $data['user_id'] = Auth::id();
 
         return $data;
@@ -25,9 +23,9 @@ class CreateSale extends CreateRecord
     {
         $sale = $this->getRecord();
 
-        $sale->details->each(function ($item) {
-            $article = Article::find($item->article_id);
-            $service = new InventoryService($article);
+        $sale->items->each(function ($item) {
+            $product = Product::find($item->product_id);
+            $service = new InventoryService($product);
             $service->removeFromStock($item->quantity);
         });
 
