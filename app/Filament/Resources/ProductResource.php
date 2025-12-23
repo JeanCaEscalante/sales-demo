@@ -15,13 +15,13 @@ class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
-    protected static ?string $navigationLabel = 'Artículos';
+    protected static ?string $navigationLabel = 'Productos';
 
     protected static ?string $navigationGroup = 'Inventario';
 
-    protected static ?string $pluralLabel = 'Artículos';
+    protected static ?string $pluralLabel = 'Productos';
 
-    protected static ?string $label = 'Artículo';
+    protected static ?string $label = 'Producto';
 
     public static function form(Form $form): Form
     {
@@ -36,7 +36,8 @@ class ProductResource extends Resource
                     ->label('Unidad de medida')
                     ->searchable(),
                 Forms\Components\TextInput::make('code')
-                    ->label('Código'),
+                    ->label('Código')
+                    ->columnSpanFull(),
                 Forms\Components\TextInput::make('name')
                     ->label('Nombre')
                     ->columnSpanFull(),
@@ -48,7 +49,8 @@ class ProductResource extends Resource
                     ->numeric(),
                 Forms\Components\TextInput::make('price_out')
                     ->label('Precio de venta')
-                    ->numeric(),
+                    ->numeric()
+                    ->columnSpanFull(),
                 Forms\Components\Textarea::make('description')
                     ->label('Descripción')
                     ->rows(4)
