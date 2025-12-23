@@ -7,7 +7,7 @@ use Filament\Support\Contracts\HasLabel;
 enum TypeDiscount: string implements HasLabel
 {
     case Percentage = 'percentage';
-    case Fixed = 'fixed ';
+    case Fixed = 'fixed';
 
     public function getLabel(): ?string
     {

@@ -13,7 +13,7 @@ enum TypeDocument: string implements HasLabel
     {
         return match ($this) {
             self::Natural => 'Natural',
-            self::Legal => 'Jurídica ',
+            self::Legal => 'Jurídica',
         };
     }
 }

@@ -7,7 +7,7 @@ use Filament\Support\Contracts\HasLabel;
 enum TypeContact: string implements HasLabel
 {
     case Email = 'email';
-    case Phone = 'phone ';
+    case Phone = 'phone';
 
     public function getLabel(): ?string
     {
