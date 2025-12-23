@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\InventoryMovement;
 use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 
 class InventoryService
 {
@@ -23,13 +25,37 @@ class InventoryService
         $this->product->setPriceOut($price);
     }
 
-    public function addToStock(float $quantity)
+    public function addToStock(float $quantity, string $reason = 'Compra', $reference = null, ?string $notes = null)
     {
+        $previousStock = $this->product->stock;
         $this->product->increase($quantity);
+        $newStock = $this->product->stock;
+
+        $this->recordMovement('input', $quantity, $previousStock, $newStock, $reason, $reference, $notes);
     }
 
-    public function removeFromStock(float $quantity)
+    public function removeFromStock(float $quantity, string $reason = 'Venta', $reference = null, ?string $notes = null)
     {
+        $previousStock = $this->product->stock;
         $this->product->decrease($quantity);
+        $newStock = $this->product->stock;
+
+        $this->recordMovement('output', $quantity, $previousStock, $newStock, $reason, $reference, $notes);
+    }
+
+    private function recordMovement(string $type, float $quantity, float $previousStock, float $newStock, string $reason, $reference = null, ?string $notes = null)
+    {
+        InventoryMovement::create([
+            'product_id' => $this->product->product_id,
+            'user_id' => Auth::id() ?? 1, // Fallback to system user if not auth
+            'type' => $type,
+            'quantity' => $quantity,
+            'previous_stock' => $previousStock,
+            'new_stock' => $newStock,
+            'reason' => $reason,
+            'reference_type' => $reference ? get_class($reference) : null,
+            'reference_id' => $reference ? $reference->getKey() : null,
+            'notes' => $notes,
+        ]);
     }
 }
