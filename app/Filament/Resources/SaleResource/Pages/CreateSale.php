@@ -23,10 +23,10 @@ class CreateSale extends CreateRecord
     {
         $sale = $this->getRecord();
 
-        $sale->items->each(function ($item) {
+        $sale->items->each(function ($item) use ($sale) {
             $product = Product::find($item->product_id);
             $service = new InventoryService($product);
-            $service->removeFromStock($item->quantity);
+            $service->removeFromStock($item->quantity, 'Venta', $sale);
         });
 
     }
