@@ -14,33 +14,28 @@ class SaleCalculationService
     {
         $quantity = (float) ($get('quantity') ?? 0);
         $unitPrice = (float) ($get('unit_price') ?? 0);
-        $isExempt = $get('is_exempt_operation') ?? false;
+        $discountAmount = (float) ($get('discount_amount') ?? 0);
         
-        // Calcular base imponible (cantidad × precio unitario)
-        $taxBase = $quantity * $unitPrice;
-        $set('tax_base', number_format($taxBase, 2, '.', ''));
-        
-        // Si está exento, no hay impuestos
-        if ($isExempt) {
-            $set('tax_amount', '0.00');
-            $set('surcharge_equivalence_amount', '0.00');
-            $set('net_amount', number_format($taxBase, 2, '.', ''));
-            return;
-        }
+        // Calcular base imponible (cantidad × precio unitario) - descuento
+        $taxBase = ($quantity * $unitPrice) - $discountAmount;
         
         // Obtener tasa de impuesto
-        $taxRate = (float) ($get('tax_rate') ?? 0);
-        $taxAmount = $taxBase * ($taxRate / 100);
+        $taxRateId = $get('tax_rate_id');
+        $taxRateValue = 0;
+        
+        if ($taxRateId) {
+            $taxRate = \App\Models\TaxRate::find($taxRateId);
+            if ($taxRate) {
+                $taxRateValue = (float) $taxRate->rate;
+            }
+        }
+        
+        $taxAmount = $taxBase * ($taxRateValue / 100);
         $set('tax_amount', number_format($taxAmount, 2, '.', ''));
         
-        // Calcular recargo de equivalencia si aplica
-        $surchargeRate = (float) ($get('surcharge_rate') ?? 0);
-        $surchargeAmount = $taxBase * ($surchargeRate / 100);
-        $set('surcharge_equivalence_amount', number_format($surchargeAmount, 2, '.', ''));
-        
-        // Calcular monto neto total
-        $netAmount = $taxBase + $taxAmount + $surchargeAmount;
-        $set('net_amount', number_format($netAmount, 2, '.', ''));
+        // Calcular monto neto total (subtotal en el modelo)
+        $subtotal = $taxBase + $taxAmount;
+        $set('subtotal', number_format($subtotal, 2, '.', ''));
     }
     
     /**
@@ -48,30 +43,33 @@ class SaleCalculationService
      */
     public static function calculateDocumentTotals(Get $get, Set $set): void
     {
-        $items = $get('Artículos') ?? [];
+        $items = $get('items') ?? [];
         
         $subtotalBase = 0;
         $subtotalTaxes = 0;
-        $subtotalSurcharge = 0;
         
         foreach ($items as $item) {
-            $subtotalBase += (float) ($item['tax_base'] ?? 0);
+            $quantity = (float) ($item['quantity'] ?? 0);
+            $unitPrice = (float) ($item['unit_price'] ?? 0);
+            $discount = (float) ($item['discount_amount'] ?? 0);
+            
+            $itemBase = ($quantity * $unitPrice) - $discount;
+            $subtotalBase += $itemBase;
             $subtotalTaxes += (float) ($item['tax_amount'] ?? 0);
-            $subtotalSurcharge += (float) ($item['surcharge_equivalence_amount'] ?? 0);
         }
         
-        // Obtener descuentos si existen
-        $subtotalDiscounts = (float) ($get('subtotal_discounts') ?? 0);
+        // Obtener descuentos globales si existen
+        $globalDiscounts = (float) ($get('subtotal_discounts') ?? 0);
         
         // Calcular total
-        $total = $subtotalBase + $subtotalTaxes + $subtotalSurcharge - $subtotalDiscounts;
+        $totalAmount = $subtotalBase + $subtotalTaxes - $globalDiscounts;
         
         // Establecer valores
         $set('subtotal_base', number_format($subtotalBase, 2, '.', ''));
-        $set('subtotal_taxes', number_format($subtotalTaxes + $subtotalSurcharge, 2, '.', ''));
-        $set('total', number_format($total, 2, '.', ''));
+        $set('subtotal_taxes', number_format($subtotalTaxes, 2, '.', ''));
+        $set('total_amount', number_format($totalAmount, 2, '.', ''));
     }
-    
+
     /**
      * Valida el stock disponible de un producto
      */

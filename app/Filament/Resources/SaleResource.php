@@ -58,7 +58,7 @@ class SaleResource extends Resource
                         Forms\Components\Select::make('customer_id')
                             ->label('Cliente')
                             ->relationship('customer', 'name')
-                            ->searchable(['name', 'tax_number'])
+                            ->searchable(['name', 'document'])
                             ->preload()
                             ->required()
                             ->createOptionForm(fn (Form $form) => CustomerResource::form($form))
@@ -71,10 +71,6 @@ class SaleResource extends Resource
                                 
                                 $customer = \App\Models\Customer::find($state);
                                 if ($customer) {
-                                    $set('customer_name', $customer->name);
-                                    $set('customer_tax_number', $customer->tax_number);
-                                    $set('customer_email', $customer->email);
-                                    $set('customer_phone', $customer->phone);
                                     $set('customer_address', $customer->address);
                                 }
                             }),
@@ -115,6 +111,7 @@ class SaleResource extends Resource
                     ->schema([
                         Forms\Components\Repeater::make('items')
                             ->label('')
+                            ->relationship()
                             ->schema([
                                 // Selección de Producto
                                 Forms\Components\Select::make('product_id')
@@ -146,56 +143,18 @@ class SaleResource extends Resource
                                         }
                                         
                                         // Cargar datos del producto
-                                        $set('name', $product->name);
-                                        $set('article_code', $product->code);
-                                        $set('description', $product->description);
-                                        $set('unit_price', $product->sale_price);
+                                        $set('unit_price', $product->price_out);
                                         $set('quantity', 1);
                                         
                                         // Cargar impuesto si existe
                                         if ($product->tax_rate_id) {
-                                            $taxRate = TaxRate::find($product->tax_rate_id);
-                                            if ($taxRate) {
-                                                $set('tax_rate', $taxRate->rate);
-                                                $set('is_exempt_operation', false);
-                                            }
+                                            $set('tax_rate_id', $product->tax_rate_id);
                                         }
                                         
                                         // Calcular totales
                                         SaleCalculationService::calculateLineItem($get, $set);
                                     })
-                                    ->columnSpan(3),
-                                
-                                Forms\Components\TextInput::make('name')
-                                    ->label('Nombre')
-                                    ->required()
-                                    ->columnSpan(3),
-                                
-                                Forms\Components\TextInput::make('article_code')
-                                    ->label('Código')
-                                    ->columnSpan(2),
-                                
-                                Forms\Components\Toggle::make('is_exempt_operation')
-                                    ->label('¿Exento de impuestos?')
-                                    ->live()
-                                    ->afterStateUpdated(function (Get $get, Set $set) {
-                                        SaleCalculationService::calculateLineItem($get, $set);
-                                    })
-                                    ->inline(false)
-                                    ->columnSpan(2),
-                                
-                                // Precio y Cantidad
-                                Forms\Components\TextInput::make('unit_price')
-                                    ->label('Precio Unitario')
-                                    ->required()
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->prefix('€')
-                                    ->live(onBlur: true)
-                                    ->afterStateUpdated(function (Get $get, Set $set) {
-                                        SaleCalculationService::calculateLineItem($get, $set);
-                                    })
-                                    ->columnSpan(2),
+                                    ->columnSpan(4),
                                 
                                 Forms\Components\TextInput::make('quantity')
                                     ->label('Cantidad')
@@ -224,42 +183,52 @@ class SaleResource extends Resource
                                         SaleCalculationService::calculateLineItem($get, $set);
                                     })
                                     ->columnSpan(2),
-                                
-                                // Impuestos
-                                Forms\Components\TextInput::make('tax_rate')
-                                    ->label('% Impuesto')
+
+                                Forms\Components\TextInput::make('unit_price')
+                                    ->label('Precio Unitario')
+                                    ->required()
                                     ->numeric()
-                                    ->suffix('%')
+                                    ->minValue(0)
+                                    ->prefix('$')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(function (Get $get, Set $set) {
                                         SaleCalculationService::calculateLineItem($get, $set);
                                     })
-                                    ->hidden(fn (Get $get) => $get('is_exempt_operation'))
                                     ->columnSpan(2),
+
+                                Forms\Components\TextInput::make('discount_amount')
+                                    ->label('Descuento')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->minValue(0)
+                                    ->prefix('$')
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function (Get $get, Set $set) {
+                                        SaleCalculationService::calculateLineItem($get, $set);
+                                    })
+                                    ->columnSpan(2),
+                                
+                                Forms\Components\Select::make('tax_rate_id')
+                                    ->label('Impuesto')
+                                    ->relationship('taxRate', 'name')
+                                    ->live()
+                                    ->afterStateUpdated(function (Get $get, Set $set) {
+                                        SaleCalculationService::calculateLineItem($get, $set);
+                                    })
+                                    ->columnSpan(3),
                                 
                                 // Resultados calculados
-                                Forms\Components\TextInput::make('tax_base')
-                                    ->label('Base Imponible')
-                                    ->readOnly()
-                                    ->prefix('€')
-                                    ->columnSpan(2),
-                                
                                 Forms\Components\TextInput::make('tax_amount')
-                                    ->label('Impuesto')
+                                    ->label('Monto Impuesto')
                                     ->readOnly()
-                                    ->prefix('€')
-                                    ->columnSpan(2),
+                                    ->prefix('$')
+                                    ->columnSpan(3),
                                 
-                                Forms\Components\TextInput::make('net_amount')
+                                Forms\Components\TextInput::make('subtotal')
                                     ->label('Total Línea')
                                     ->readOnly()
-                                    ->prefix('€')
-                                    ->columnSpan(2),
-                                
-                                Forms\Components\Textarea::make('description')
-                                    ->label('Descripción')
-                                    ->rows(2)
-                                    ->columnSpanFull(),
+                                    ->prefix('$')
+                                    ->columnSpan(4),
                             ])
                             ->columns(10)
                             ->defaultItems(0)
@@ -294,25 +263,25 @@ class SaleResource extends Resource
                         Forms\Components\TextInput::make('subtotal_base')
                             ->label('Subtotal Base')
                             ->readOnly()
-                            ->prefix('€')
+                            ->prefix('$')
                             ->default('0.00'),
                         
                         Forms\Components\TextInput::make('subtotal_taxes')
                             ->label('Total Impuestos')
                             ->readOnly()
-                            ->prefix('€')
+                            ->prefix('$')
                             ->default('0.00'),
                         
                         Forms\Components\TextInput::make('subtotal_discounts')
                             ->label('Descuentos')
                             ->readOnly()
-                            ->prefix('€')
+                            ->prefix('$')
                             ->default('0.00'),
                         
-                        Forms\Components\TextInput::make('total')
+                        Forms\Components\TextInput::make('total_amount')
                             ->label('TOTAL A PAGAR')
                             ->readOnly()
-                            ->prefix('€')
+                            ->prefix('$')
                             ->extraAttributes(['class' => 'font-bold text-lg'])
                             ->default('0.00'),
                     ])
@@ -378,9 +347,9 @@ class SaleResource extends Resource
                     ->badge()
                     ->sortable(),
                 
-                Tables\Columns\TextColumn::make('total')
+                Tables\Columns\TextColumn::make('total_amount')
                     ->label('Total')
-                    ->money('EUR')
+                    ->money('USD')
                     ->sortable(),
                 
                 Tables\Columns\TextColumn::make('created_at')
