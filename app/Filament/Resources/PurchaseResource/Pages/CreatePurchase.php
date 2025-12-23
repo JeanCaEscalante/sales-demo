@@ -23,10 +23,10 @@ class CreatePurchase extends CreateRecord
     {
         $purchase = $this->getRecord();
 
-        $purchase->items->each(function ($item) {
+        $purchase->items->each(function ($item) use ($purchase) {
             $product = Product::find($item->product_id);
             $inventoryService = new InventoryService($product);
-            $inventoryService->addToStock($item->quantity);
+            $inventoryService->addToStock($item->quantity, 'Compra', $purchase);
             $inventoryService->updatePurchasePrice($item->unit_cost);
             $inventoryService->updateSalePrice($item->suggested_price);
         });
