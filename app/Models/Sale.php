@@ -35,10 +35,20 @@ class Sale extends Model
         'document_type',
         'document_series',
         'document_number',
+        'document_date',
         'total_base',
         'total_taxes',
         'total_discounts',
         'total_amount',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'document_date' => 'datetime',
     ];
 
     /**
