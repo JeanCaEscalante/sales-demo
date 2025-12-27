@@ -15,7 +15,7 @@ return new class extends Migration
             $table->bigIncrements('purchase_id');
             $table->unsignedBigInteger('supplier_id');
             $table->enum('document_type', ['bill', 'ticket']);
-            $table->string('series');
+            $table->string('series')->nullable();
             $table->string('receipt_number');
             $table->date('purchase_date');
             $table->double('total_tax');

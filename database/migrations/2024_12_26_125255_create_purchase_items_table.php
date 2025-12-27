@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('product_id');
             $table->bigInteger('quantity');
             $table->double('unit_cost');
-            $table->double('suggested_price');
+            $table->double('net_cost');
             $table->timestamps();
 
             $table->foreign('purchase_id')->references('purchase_id')->on('purchases')->onDelete('cascade');
