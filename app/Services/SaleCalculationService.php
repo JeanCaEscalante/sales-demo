@@ -207,7 +207,7 @@ class SaleCalculationService
 
         return [
             'document_series' => $series,
-            'document_number' => $documentNumber,   
+            'document_number' => $documentNumber,
         ];
     }
 }
