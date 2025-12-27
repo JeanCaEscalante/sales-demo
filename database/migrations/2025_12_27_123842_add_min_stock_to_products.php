@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::table('products', function (Blueprint $table) {
             $table->integer('min_stock')->nullable()->after('stock');
+            $table->integer('profit')->nullable()->after('min_stock');
         });
     }
 
@@ -23,6 +24,7 @@ return new class extends Migration
     {
         Schema::table('products', function (Blueprint $table) {
             $table->dropColumn('min_stock');
+            $table->dropColumn('profit');
         });
     }
 };
