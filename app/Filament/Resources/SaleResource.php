@@ -107,8 +107,8 @@ class SaleResource extends Resource
                             ->disabled()
                             ->dehydrated()
                             ->columnSpan(2),
-                        Forms\Components\DatePicker::make('created_at')
-                            ->label('Fecha de Operación')
+                        Forms\Components\DatePicker::make('document_date')
+                            ->label('Fecha del Documento')
                             ->required()
                             ->default(now())
                             ->columnSpan(2),
@@ -339,7 +339,7 @@ class SaleResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('serial')
+                Tables\Columns\TextColumn::make('document_number')
                     ->label('Nº Documento')
                     ->searchable()
                     ->sortable(),
@@ -349,13 +349,13 @@ class SaleResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('operation_date')
-                    ->label('Fecha')
+                Tables\Columns\TextColumn::make('document_date')
+                    ->label('Fecha del Documento')
                     ->date('d/m/Y')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('type_document')
-                    ->label('Tipo')
+                Tables\Columns\TextColumn::make('document_type')
+                    ->label('Tipo Comprobante')
                     ->badge()
                     ->sortable(),
 
@@ -371,11 +371,11 @@ class SaleResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('type_document')
-                    ->label('Tipo de Documento')
+                Tables\Filters\SelectFilter::make('document_type')
+                    ->label('Tipo Comprobante')
                     ->options(TypeReceipt::class),
 
-                Tables\Filters\Filter::make('operation_date')
+                Tables\Filters\Filter::make('document_date')
                     ->form([
                         Forms\Components\DatePicker::make('from')
                             ->label('Desde'),
@@ -384,8 +384,8 @@ class SaleResource extends Resource
                     ])
                     ->query(function ($query, array $data) {
                         return $query
-                            ->when($data['from'], fn ($q, $date) => $q->whereDate('operation_date', '>=', $date))
-                            ->when($data['until'], fn ($q, $date) => $q->whereDate('operation_date', '<=', $date));
+                            ->when($data['from'], fn ($q, $date) => $q->whereDate('document_date', '>=', $date))
+                            ->when($data['until'], fn ($q, $date) => $q->whereDate('document_date', '<=', $date));
                     }),
             ])
             ->actions([
