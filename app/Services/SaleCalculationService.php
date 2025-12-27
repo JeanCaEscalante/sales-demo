@@ -191,24 +191,23 @@ class SaleCalculationService
 
         // Buscar el último número de la serie
         $lastSale = \App\Models\Sale::where('user_id', $userId)
-            ->where('series', $series)
-            ->orderBy('invoice_number', 'desc')
+            ->where('document_series', $series)
+            ->orderBy('document_number', 'desc')
             ->first();
 
         $nextNumber = 1;
-        if ($lastSale && $lastSale->invoice_number) {
+        if ($lastSale && $lastSale->document_number) {
             // Extraer el número de la serie (ej: FTA-20231225-5 -> 5)
-            $parts = explode('-', $lastSale->invoice_number);
+            $parts = explode('-', $lastSale->document_number);
             $lastNumber = (int) end($parts);
             $nextNumber = $lastNumber + 1;
         }
 
-        $invoiceNumber = "{$prefix}-{$nextNumber}";
+        $documentNumber = "{$prefix}-{$nextNumber}";
 
         return [
-            'series' => $series,
-            'invoice_number' => $invoiceNumber,
-            'serial' => $invoiceNumber,
+            'document_series' => $series,
+            'document_number' => $documentNumber,   
         ];
     }
 }
