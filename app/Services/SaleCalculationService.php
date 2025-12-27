@@ -34,8 +34,8 @@ class SaleCalculationService
         $set('tax_amount', number_format($taxAmount, 2, '.', ''));
         
         // Calcular monto neto total (subtotal en el modelo)
-        $subtotal = $taxBase + $taxAmount;
-        $set('subtotal', number_format($subtotal, 2, '.', ''));
+        $total = $taxBase + $taxAmount;
+        $set('total', number_format($total, 2, '.', ''));
     }
     
     /**
@@ -45,8 +45,8 @@ class SaleCalculationService
     {
         $items = $get('items') ?? [];
         
-        $subtotalBase = 0;
-        $subtotalTaxes = 0;
+        $totalBase = 0;
+        $totalTaxes = 0;
         
         foreach ($items as $item) {
             $quantity = (float) ($item['quantity'] ?? 0);
@@ -54,19 +54,19 @@ class SaleCalculationService
             $discount = (float) ($item['discount_amount'] ?? 0);
             
             $itemBase = ($quantity * $unitPrice) - $discount;
-            $subtotalBase += $itemBase;
-            $subtotalTaxes += (float) ($item['tax_amount'] ?? 0);
+            $totalBase += $itemBase;
+            $totalTaxes += (float) ($item['tax_amount'] ?? 0);
         }
         
         // Obtener descuentos globales si existen
-        $globalDiscounts = (float) ($get('subtotal_discounts') ?? 0);
+        $globalDiscounts = (float) ($get('total_discounts') ?? 0);
         
         // Calcular total
-        $totalAmount = $subtotalBase + $subtotalTaxes - $globalDiscounts;
+        $totalAmount = $totalBase + $totalTaxes - $globalDiscounts;
         
         // Establecer valores
-        $set('subtotal_base', number_format($subtotalBase, 2, '.', ''));
-        $set('subtotal_taxes', number_format($subtotalTaxes, 2, '.', ''));
+        $set('total_base', number_format($totalBase, 2, '.', ''));
+        $set('total_taxes', number_format($totalTaxes, 2, '.', ''));
         $set('total_amount', number_format($totalAmount, 2, '.', ''));
     }
 
@@ -110,7 +110,7 @@ class SaleCalculationService
     public static function applyDiscount(Get $get, Set $set, ?int $discountId): void
     {
         if (!$discountId) {
-            $set('subtotal_discounts', '0.00');
+            $set('total_discounts', '0.00');
             self::calculateDocumentTotals($get, $set);
             return;
         }
@@ -118,7 +118,7 @@ class SaleCalculationService
         $discount = \App\Models\Discount::find($discountId);
         
         if (!$discount || !$discount->is_active) {
-            $set('subtotal_discounts', '0.00');
+            $set('total_discounts', '0.00');
             self::calculateDocumentTotals($get, $set);
             return;
         }
@@ -126,29 +126,29 @@ class SaleCalculationService
         // Validar fechas
         $now = now();
         if ($discount->start_date && $now->lt($discount->start_date)) {
-            $set('subtotal_discounts', '0.00');
+            $set('total_discounts', '0.00');
             self::calculateDocumentTotals($get, $set);
             return;
         }
         
         if ($discount->end_date && $now->gt($discount->end_date)) {
-            $set('subtotal_discounts', '0.00');
+            $set('total_discounts', '0.00');
             self::calculateDocumentTotals($get, $set);
             return;
         }
         
         // Validar máximo de usos
         if ($discount->max_uses && $discount->used >= $discount->max_uses) {
-            $set('subtotal_discounts', '0.00');
+            $set('total_discounts', '0.00');
             self::calculateDocumentTotals($get, $set);
             return;
         }
         
-        $subtotalBase = (float) ($get('subtotal_base') ?? 0);
+        $totalBase = (float) ($get('total_base') ?? 0);
         
         // Validar monto mínimo
-        if ($discount->min_purchase_amount && $subtotalBase < $discount->min_purchase_amount) {
-            $set('subtotal_discounts', '0.00');
+        if ($discount->min_purchase_amount && $totalBase < $discount->min_purchase_amount) {
+            $set('total_discounts', '0.00');
             self::calculateDocumentTotals($get, $set);
             return;
         }
@@ -156,15 +156,15 @@ class SaleCalculationService
         // Calcular descuento
         $discountAmount = 0;
         if ($discount->type === 'percentage') {
-            $discountAmount = $subtotalBase * ($discount->value / 100);
+            $discountAmount = $totalBase * ($discount->value / 100);
         } else {
             $discountAmount = $discount->value;
         }
         
-        // No puede exceder el subtotal
-        $discountAmount = min($discountAmount, $subtotalBase);
+        // No puede exceder el total base
+        $discountAmount = min($discountAmount, $totalBase);
         
-        $set('subtotal_discounts', number_format($discountAmount, 2, '.', ''));
+        $set('total_discounts', number_format($discountAmount, 2, '.', ''));
         self::calculateDocumentTotals($get, $set);
     }
     
