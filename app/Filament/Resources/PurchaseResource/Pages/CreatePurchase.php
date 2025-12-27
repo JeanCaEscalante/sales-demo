@@ -27,8 +27,8 @@ class CreatePurchase extends CreateRecord
             $product = Product::find($item->product_id);
             $inventoryService = new InventoryService($product);
             $inventoryService->addToStock($item->quantity, 'Compra', $purchase);
-            $inventoryService->updatePurchasePrice($item->unit_cost);
-            $inventoryService->updateSalePrice($item->suggested_price);
+            $inventoryService->updatePurchasePrice($item->unit_price);
+            $inventoryService->updateSalePrice($item->sale_price);
         });
     }
 }

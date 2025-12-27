@@ -51,7 +51,7 @@ class PurchaseResource extends Resource
                             ->required()
                             ->createOptionForm(fn (Form $form) => SupplierResource::form($form))
                             ->createOptionModalHeading('Crear Proveedor')
-                            ->live()
+                            ->live(),
                     ])
                     ->columnSpan(8),
                 Forms\Components\Section::make('Información del Comprobante')
@@ -107,58 +107,60 @@ class PurchaseResource extends Resource
                                     ->label('Cantidad Actual')
                                     ->numeric()
                                     ->readOnly()
-                                    ->columnSpan(2),    
+                                    ->columnSpan(2),
                                 Forms\Components\TextInput::make('profit')
                                     ->label('Ganancia')
                                     ->numeric()
+                                    ->required()
                                     ->minValue(0)
                                     ->maxValue(100)
                                     ->prefix('%')
-                                    ->columnSpan(2),    
+                                    ->live()
+                                    ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get) => self::updateCalculations($set, $get))
+                                    ->columnSpan(2),
                                 Forms\Components\TextInput::make('price_out')
                                     ->label('Precio de venta actual')
                                     ->numeric()
                                     ->prefix('$')
                                     ->readOnly()
-                                    ->columnSpan(2),     
+                                    ->columnSpan(2),
                                 //Informacio de la compra
-                                Forms\Components\TextInput::make('quantity')
-                                    ->label('Cantidad')
-                                    ->numeric()
-                                    ->default(1)
-                                    ->minValue(1)
-                                    ->required()
-                                    ->live()
-                                    ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
-                                        $set('net_cost', number_format((float)($get('quantity') ?? 0) * (float)($get('unit_cost') ?? 0), 2, '.', ''));
-                                        self::updateTotals($set, $get);
-                                    })
-                                    ->columnSpan(2),
-                                Forms\Components\TextInput::make('unit_cost')
-                                    ->label('Costo Unitario')
-                                    ->numeric()
-                                    ->prefix('$')
-                                    ->required()
-                                    ->live()
-                                    ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
-                                        $set('net_cost', number_format((float)($get('quantity') ?? 0) * (float)($get('unit_cost') ?? 0), 2, '.', ''));
-                                        self::updateTotals($set, $get);
-                                    })
-                                    ->columnSpan(2),
-                                Forms\Components\TextInput::make('net_cost')
-                                    ->label('Costo Neto')
-                                    ->numeric()
-                                    ->prefix('$')
-                                    ->required()
-                                    ->readOnly()
-                                    ->columnSpan(2),
-                                Forms\Components\TextInput::make('sale_price')
-                                    ->label('Precio de venta')
-                                    ->numeric()
-                                    ->prefix('$')
-                                    ->required()
-                                    ->readOnly()
-                                    ->columnSpan(2),   
+                                Forms\Components\Fieldset::make('Información de la compra')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('quantity')
+                                            ->label('Cantidad')
+                                            ->numeric()
+                                            ->default(1)
+                                            ->minValue(1)
+                                            ->required()
+                                            ->live()
+                                            ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get) => self::updateCalculations($set, $get))
+                                            ->columnSpan(2),
+                                        Forms\Components\TextInput::make('unit_price')
+                                            ->label('Precio Unitario')
+                                            ->numeric()
+                                            ->prefix('$')
+                                            ->required()
+                                            ->live()
+                                            ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get) => self::updateCalculations($set, $get))
+                                            ->columnSpan(2),
+                                        Forms\Components\TextInput::make('net_total')
+                                            ->label('Total Neto')
+                                            ->numeric()
+                                            ->prefix('$')
+                                            ->required()
+                                            ->readOnly()
+                                            ->columnSpan(2),
+                                        Forms\Components\TextInput::make('sale_price')
+                                            ->label('Precio de venta')
+                                            ->numeric()
+                                            ->prefix('$')
+                                            ->required()
+                                            ->readOnly()
+                                            ->columnSpan(2),
+                                    ])
+                                    ->columns(8)
+                                    ->columnSpanFull(),
                             ])
                             ->columns(8)
                             ->columnSpanFull()
@@ -186,6 +188,21 @@ class PurchaseResource extends Resource
             ->columns(12);
     }
 
+    public static function updateCalculations(Forms\Set $set, Forms\Get $get): void
+    {
+        $quantity = (float) ($get('quantity') ?? 0);
+        $unitCost = (float) ($get('unit_price') ?? 0);
+        $profit = (float) ($get('profit') ?? 0);
+
+        $netTotal = $quantity * $unitCost;
+        $set('net_total', number_format($netTotal, 2, '.', ''));
+
+        $salePrice = $unitCost + ($unitCost * ($profit / 100));
+        $set('sale_price', number_format($salePrice, 2, '.', ''));
+
+        self::updateTotals($set, $get);
+    }
+
     public static function updateTotals(Forms\Set $set, Forms\Get $get): void
     {
         // Check if we are in a repeater item context
@@ -201,7 +218,7 @@ class PurchaseResource extends Resource
         $items = collect($items ?? []);
 
         $total = $items->reduce(function ($carry, $item) {
-            return $carry + ((float)($item['quantity'] ?? 0) * (float)($item['unit_cost'] ?? 0));
+            return $carry + ((float) ($item['quantity'] ?? 0) * (float) ($item['unit_price'] ?? 0));
         }, 0);
 
         $path = $isRemote ? '../../total_amount' : 'total_amount';
