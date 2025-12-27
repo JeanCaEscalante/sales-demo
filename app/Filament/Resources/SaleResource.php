@@ -218,31 +218,15 @@ class SaleResource extends Resource
                                     ->afterStateUpdated(function (Get $get, Set $set) {
                                         SaleCalculationService::calculateLineItem($get, $set);
                                     })
-                                    ->columnSpan(2),
-
-                                Forms\Components\Select::make('tax_rate_id')
-                                    ->label('Impuesto')
-                                    ->relationship('taxRate', 'name')
-                                    ->live()
-                                    ->afterStateUpdated(function (Get $get, Set $set) {
-                                        SaleCalculationService::calculateLineItem($get, $set);
-                                    })
-                                    ->columnSpan(3),
-
-                                // Resultados calculados
-                                Forms\Components\TextInput::make('tax_amount')
-                                    ->label('Monto Impuesto')
-                                    ->readOnly()
-                                    ->prefix('$')
-                                    ->columnSpan(3),
+                                    ->columnSpan(4),
 
                                 Forms\Components\TextInput::make('subtotal')
-                                    ->label('Total Línea')
+                                    ->label('Total Neto')
                                     ->readOnly()
                                     ->prefix('$')
                                     ->columnSpan(4),
                             ])
-                            ->columns(10)
+                            ->columns(8)
                             ->defaultItems(0)
                             ->addActionLabel('Añadir artículo')
                             ->collapsible()
