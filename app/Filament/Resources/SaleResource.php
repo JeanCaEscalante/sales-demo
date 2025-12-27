@@ -34,7 +34,7 @@ class SaleResource extends Resource
                 // Sección: Tipo de Documento
                 Forms\Components\Section::make('Tipo Documento')
                     ->schema([
-                        Forms\Components\Select::make('type_document')
+                        Forms\Components\Select::make('document_type')
                             ->label('Tipo Comprobante')
                             ->options(TypeReceipt::class)
                             ->live()
