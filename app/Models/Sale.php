@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,8 +10,6 @@ use Illuminate\Support\Facades\Auth;
 
 class Sale extends Model
 {
-    use HasUlids;
-
     /**
      * The table associated with the model.
      *
@@ -38,7 +35,9 @@ class Sale extends Model
         'document_type',
         'series',
         'invoice_number',
-        'total_tax',
+        'total_base',
+        'total_taxes',
+        'total_discounts',
         'total_amount',
     ];
 
