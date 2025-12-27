@@ -38,9 +38,19 @@ class Product extends Model
         'stock',
         'min_stock',
         'profit',
-        'price_in',
+        'unit_price',
         'price_out',
         'description',
+        'is_exempt',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'is_exempt' => 'boolean',
     ];
 
     /**

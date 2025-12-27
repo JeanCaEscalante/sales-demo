@@ -31,10 +31,12 @@ class ProductResource extends Resource
                     ->relationship(name: 'category', titleAttribute: 'category_name')
                     ->label('Categoría')
                     ->searchable()
+                    ->preload()
                     ->required(),
                 Forms\Components\Select::make('unit_id')
                     ->relationship(name: 'unit', titleAttribute: 'name')
                     ->label('Unidad de medida')
+                    ->preload()
                     ->searchable(),
                 Forms\Components\TextInput::make('code')
                     ->label('Código')
@@ -53,19 +55,33 @@ class ProductResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('profit')
                     ->label('Ganancia')
-                    ->numeric(),
-                Forms\Components\TextInput::make('price_in')
-                    ->label('Último precio de compra')
-                    ->numeric(),
+                    ->suffix('%')
+                    ->minValue(0)
+                    ->maxValue(100)
+                    ->numeric()
+                    ->required(),
+                Forms\Components\TextInput::make('unit_price')
+                    ->label('Precio unitario')
+                    ->live()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        $set('price_out', $state * (1 + $set('profit') / 100));
+                    })
+                    ->numeric()
+                    ->required(),
                 Forms\Components\TextInput::make('price_out')
                     ->label('Precio de venta')
                     ->numeric()
-                    ->required()
-                    ->columnSpanFull(),
+                    ->readOnly()
+                    ->required(),
+                Forms\Components\Toggle::make('is_exempt')
+                    ->label('Exento de impuesto')
+                    ->inline(false)
+                    ->default(false),
                 Forms\Components\Textarea::make('description')
                     ->label('Descripción')
                     ->rows(4)
                     ->columnSpanFull(),
+                
 
             ]);
     }
