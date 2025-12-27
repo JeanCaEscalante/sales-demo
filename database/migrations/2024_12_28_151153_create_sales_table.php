@@ -12,13 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sales', function (Blueprint $table) {
-            $table->ulid('sale_id')->primary();
+            $table->bigIncrements('sale_id')->primary();
             $table->unsignedBigInteger('customer_id');
             $table->unsignedBigInteger('user_id');
             $table->enum('document_type', ['bill', 'ticket']);
             $table->string('series')->nullable();
             $table->string('invoice_number')->nullable();
-            $table->double('total_tax');
+            $table->double('total_base');
+            $table->double('total_taxes');
+            $table->double('total_discounts');
             $table->double('total_amount');
             $table->timestamps();
 
