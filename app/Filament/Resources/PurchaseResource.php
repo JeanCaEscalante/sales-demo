@@ -27,34 +27,69 @@ class PurchaseResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Información del Comprobante')
+
+                // Sección: Empleado
+                Forms\Components\Section::make('Empleado')
                     ->schema([
-                        Forms\Components\Select::make('supplier_id')
-                            ->relationship(name: 'supplier', titleAttribute: 'name')
-                            ->label('Proveedor')
-                            ->searchable()
+                        Forms\Components\Select::make('user_id')
+                            ->label('Empleado')
+                            ->relationship('user', 'name')
+                            ->searchable(['name', 'document'])
                             ->preload()
                             ->required(),
+                    ])
+                    ->columnSpan(4),
+
+                // Sección: Selección de Proveedor
+                Forms\Components\Section::make('Proveedor')
+                    ->schema([
+                        Forms\Components\Select::make('supplier_id')
+                            ->label('Proveedor')
+                            ->relationship('supplier', 'name')
+                            ->searchable(['name', 'document'])
+                            ->preload()
+                            ->required()
+                            ->createOptionForm(fn (Form $form) => SupplierResource::form($form))
+                            ->createOptionModalHeading('Crear Proveedor')
+                            ->live()
+                            ->afterStateUpdated(function ($state, Set $set) {
+                                if (! $state) {
+                                    return;
+                                }
+
+                                $supplier = \App\Models\Supplier::find($state);
+                                if ($supplier) {    
+                                    $set('supplier_address', $supplier->address);
+                                }
+                            }),
+                    ])
+                    ->columnSpan(8),
+                Forms\Components\Section::make('Información del Comprobante')
+                    ->schema([
                         Forms\Components\Select::make('document_type')
                             ->label('Tipo Comprobante')
                             ->options(TypeReceipt::class)
-                            ->required(),
-                        Forms\Components\DatePicker::make('purchase_date')
-                            ->label('Fecha')
-                            ->default(now())
-                            ->maxDate(now())
-                            ->required(),
+                            ->required()
+                            ->columnSpan(2),
                         Forms\Components\TextInput::make('series')
                             ->label('Serie')
-                            ->maxLength(10),
+                            ->maxLength(10)
+                            ->columnSpan(2),
                         Forms\Components\TextInput::make('receipt_number')
                             ->label('Número')
                             ->required()
                             ->unique(ignoreRecord: true, modifyRuleUsing: function ($rule, Forms\Get $get) {
                                 return $rule->where('supplier_id', $get('supplier_id'));
-                            }),
-                    ])->columns(3),
-
+                            })
+                            ->columnSpan(2),
+                        Forms\Components\DatePicker::make('purchase_date')
+                            ->label('Fecha')
+                            ->default(now())
+                            ->maxDate(now())
+                            ->required()
+                            ->columnSpan(2),
+                    ])->columns(8)
+                    ->columnSpanFull(),
                 Forms\Components\Section::make('Detalles de la Compra')
                     ->schema([
                         Forms\Components\Repeater::make('items')
@@ -119,7 +154,8 @@ class PurchaseResource extends Resource
                             ->default(0)
                             ->readOnly(),
                     ])->columns(2),
-            ]);
+            ])
+            ->columns(12);
     }
 
     public static function updateTotals(Forms\Set $set, Forms\Get $get): void
