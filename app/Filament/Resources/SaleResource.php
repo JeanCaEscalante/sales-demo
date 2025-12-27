@@ -106,8 +106,8 @@ class SaleResource extends Resource
                     ->columns(8)
                     ->columnSpanFull(),
 
-                // Sección: Artículos
-                Forms\Components\Section::make('Artículos')
+                // Sección: Productos
+                Forms\Components\Section::make('Productos/Artículos')
                     ->schema([
                         Forms\Components\Repeater::make('items')
                             ->label('')
@@ -251,28 +251,28 @@ class SaleResource extends Resource
                 // Sección: Totales
                 Forms\Components\Section::make('Totales')
                     ->schema([
-                        Forms\Components\Select::make('discount_id')
+                       /*  Forms\Components\Select::make('discount_id')
                             ->label('Código de Descuento')
                             ->relationship('discount', 'code')
                             ->searchable(['code', 'name'])
                             ->live()
                             ->afterStateUpdated(function ($state, Get $get, Set $set) {
                                 SaleCalculationService::applyDiscount($get, $set, $state);
-                            }),
+                            }), */
                         
-                        Forms\Components\TextInput::make('subtotal_base')
+                        Forms\Components\TextInput::make('total_base')
                             ->label('Subtotal Base')
                             ->readOnly()
                             ->prefix('$')
                             ->default('0.00'),
                         
-                        Forms\Components\TextInput::make('subtotal_taxes')
+                        Forms\Components\TextInput::make('total_taxes')
                             ->label('Total Impuestos')
                             ->readOnly()
                             ->prefix('$')
                             ->default('0.00'),
                         
-                        Forms\Components\TextInput::make('subtotal_discounts')
+                        Forms\Components\TextInput::make('total_discounts')
                             ->label('Descuentos')
                             ->readOnly()
                             ->prefix('$')
