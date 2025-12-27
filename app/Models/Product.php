@@ -36,6 +36,8 @@ class Product extends Model
         'code',
         'name',
         'stock',
+        'min_stock',
+        'profit',
         'price_in',
         'price_out',
         'description',

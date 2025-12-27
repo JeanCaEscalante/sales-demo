@@ -30,7 +30,8 @@ class ProductResource extends Resource
                 Forms\Components\Select::make('category_id')
                     ->relationship(name: 'category', titleAttribute: 'category_name')
                     ->label('Categoría')
-                    ->searchable(),
+                    ->searchable()
+                    ->required(),
                 Forms\Components\Select::make('unit_id')
                     ->relationship(name: 'unit', titleAttribute: 'name')
                     ->label('Unidad de medida')
@@ -40,9 +41,18 @@ class ProductResource extends Resource
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('name')
                     ->label('Nombre')
+                    ->required()
                     ->columnSpanFull(),
                 Forms\Components\TextInput::make('stock')
                     ->label('Cantidad')
+                    ->numeric()
+                    ->required(),
+                Forms\Components\TextInput::make('min_stock')
+                    ->label('Cantidad mínima')
+                    ->numeric()
+                    ->required(),
+                Forms\Components\TextInput::make('profit')
+                    ->label('Ganancia')
                     ->numeric(),
                 Forms\Components\TextInput::make('price_in')
                     ->label('Último precio de compra')
@@ -50,6 +60,7 @@ class ProductResource extends Resource
                 Forms\Components\TextInput::make('price_out')
                     ->label('Precio de venta')
                     ->numeric()
+                    ->required()
                     ->columnSpanFull(),
                 Forms\Components\Textarea::make('description')
                     ->label('Descripción')
@@ -63,14 +74,18 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->label('Nombre'),
-                Tables\Columns\TextColumn::make('stock')
-                    ->label('Cantidad'),
                 Tables\Columns\TextColumn::make('code')
-                    ->label('Código'),
-                Tables\Columns\TextColumn::make('description')
-                    ->label('Descripción'),
+                    ->label('Código')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Nombre')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('stock')
+                    ->label('Stock')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('price_out')
+                    ->label('Precio de venta')
+                    ->sortable(),
             ])
             ->filters([
                 //
