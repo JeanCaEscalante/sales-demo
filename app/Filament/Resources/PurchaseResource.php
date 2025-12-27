@@ -52,16 +52,6 @@ class PurchaseResource extends Resource
                             ->createOptionForm(fn (Form $form) => SupplierResource::form($form))
                             ->createOptionModalHeading('Crear Proveedor')
                             ->live()
-                            ->afterStateUpdated(function ($state, Set $set) {
-                                if (! $state) {
-                                    return;
-                                }
-
-                                $supplier = \App\Models\Supplier::find($state);
-                                if ($supplier) {    
-                                    $set('supplier_address', $supplier->address);
-                                }
-                            }),
                     ])
                     ->columnSpan(8),
                 Forms\Components\Section::make('Información del Comprobante')
@@ -102,14 +92,6 @@ class PurchaseResource extends Resource
                                     ->searchable()
                                     ->preload()
                                     ->required()
-                                    ->reactive()
-                                    ->afterStateUpdated(function ($state, Forms\Set $set) {
-                                        $product = \App\Models\Product::find($state);
-                                        if ($product) {
-                                            $set('unit_cost', $product->price_in);
-                                            $set('suggested_price', $product->price_out);
-                                        }
-                                    })
                                     ->columnSpan(2),
                                 Forms\Components\TextInput::make('quantity')
                                     ->label('Cantidad')
@@ -118,19 +100,26 @@ class PurchaseResource extends Resource
                                     ->minValue(1)
                                     ->required()
                                     ->live()
-                                    ->afterStateUpdated(fn ($state, Forms\Set $set, Forms\Get $get) => self::updateTotals($set, $get)),
+                                    ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
+                                        $set('net_cost', number_format((float)($get('quantity') ?? 0) * (float)($get('unit_cost') ?? 0), 2, '.', ''));
+                                        self::updateTotals($set, $get);
+                                    }),
                                 Forms\Components\TextInput::make('unit_cost')
                                     ->label('Costo Unitario')
                                     ->numeric()
                                     ->prefix('$')
                                     ->required()
                                     ->live()
-                                    ->afterStateUpdated(fn ($state, Forms\Set $set, Forms\Get $get) => self::updateTotals($set, $get)),
-                                Forms\Components\TextInput::make('suggested_price')
-                                    ->label('Precio Venta Sug.')
+                                    ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
+                                        $set('net_cost', number_format((float)($get('quantity') ?? 0) * (float)($get('unit_cost') ?? 0), 2, '.', ''));
+                                        self::updateTotals($set, $get);
+                                    }),
+                                Forms\Components\TextInput::make('net_cost')
+                                    ->label('Costo Neto')
                                     ->numeric()
                                     ->prefix('$')
-                                    ->required(),
+                                    ->required()
+                                    ->readOnly(),
                             ])
                             ->columns(5)
                             ->columnSpanFull()
@@ -148,7 +137,7 @@ class PurchaseResource extends Resource
                             ->default(0)
                             ->readOnly(),
                         Forms\Components\TextInput::make('total_amount')
-                            ->label('Monto Total')
+                            ->label('Costo Total')
                             ->numeric()
                             ->prefix('$')
                             ->default(0)
@@ -160,15 +149,27 @@ class PurchaseResource extends Resource
 
     public static function updateTotals(Forms\Set $set, Forms\Get $get): void
     {
-        $selectedProducts = collect($get('items'))->filter(fn ($item) => ! empty($item['product_id']) && ! empty($item['quantity']) && ! empty($item['unit_cost']));
+        // Check if we are in a repeater item context
+        $items = $get('items');
+        $isRemote = false;
 
-        $total = $selectedProducts->reduce(function ($carry, $item) {
-            return $carry + ($item['quantity'] * $item['unit_cost']);
+        if ($items === null) {
+            // We are likely inside the repeater item, so we go up
+            $items = $get('../../items');
+            $isRemote = true;
+        }
+
+        $items = collect($items ?? []);
+
+        $total = $items->reduce(function ($carry, $item) {
+            return $carry + ((float)($item['quantity'] ?? 0) * (float)($item['unit_cost'] ?? 0));
         }, 0);
 
-        $set('total_amount', number_format($total, 2, '.', ''));
-        // For now, tax is 0 or manual, but we could implement tax logic here if needed.
-        $set('total_tax', 0);
+        $path = $isRemote ? '../../total_amount' : 'total_amount';
+        $taxPath = $isRemote ? '../../total_tax' : 'total_tax';
+
+        $set($path, number_format($total, 2, '.', ''));
+        $set($taxPath, 0);
     }
 
     public static function table(Table $table): Table

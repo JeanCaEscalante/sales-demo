@@ -31,7 +31,7 @@ class PurchaseItem extends Model
         'product_id',
         'quantity',
         'unit_cost',
-        'suggested_price',
+        'net_cost',
     ];
 
     /**
