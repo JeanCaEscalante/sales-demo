@@ -92,7 +92,36 @@ class PurchaseResource extends Resource
                                     ->searchable()
                                     ->preload()
                                     ->required()
-                                    ->columnSpan(2),
+                                    ->columnSpan(2)
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                        $product = \App\Models\Product::find($state);
+
+                                        if ($product) {
+                                            $set('current_stock', $product->stock);
+                                            $set('profit', $product->profit);
+                                            $set('price_out', $product->price_out);
+                                        }
+                                    }),
+                                Forms\Components\TextInput::make('current_stock')
+                                    ->label('Cantidad Actual')
+                                    ->numeric()
+                                    ->readOnly()
+                                    ->columnSpan(2),    
+                                Forms\Components\TextInput::make('profit')
+                                    ->label('Ganancia')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->maxValue(100)
+                                    ->prefix('%')
+                                    ->columnSpan(2),    
+                                Forms\Components\TextInput::make('price_out')
+                                    ->label('Precio de venta actual')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->readOnly()
+                                    ->columnSpan(2),     
+                                //Informacio de la compra
                                 Forms\Components\TextInput::make('quantity')
                                     ->label('Cantidad')
                                     ->numeric()
@@ -103,7 +132,8 @@ class PurchaseResource extends Resource
                                     ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
                                         $set('net_cost', number_format((float)($get('quantity') ?? 0) * (float)($get('unit_cost') ?? 0), 2, '.', ''));
                                         self::updateTotals($set, $get);
-                                    }),
+                                    })
+                                    ->columnSpan(2),
                                 Forms\Components\TextInput::make('unit_cost')
                                     ->label('Costo Unitario')
                                     ->numeric()
@@ -113,15 +143,24 @@ class PurchaseResource extends Resource
                                     ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
                                         $set('net_cost', number_format((float)($get('quantity') ?? 0) * (float)($get('unit_cost') ?? 0), 2, '.', ''));
                                         self::updateTotals($set, $get);
-                                    }),
+                                    })
+                                    ->columnSpan(2),
                                 Forms\Components\TextInput::make('net_cost')
                                     ->label('Costo Neto')
                                     ->numeric()
                                     ->prefix('$')
                                     ->required()
-                                    ->readOnly(),
+                                    ->readOnly()
+                                    ->columnSpan(2),
+                                Forms\Components\TextInput::make('sale_price')
+                                    ->label('Precio de venta')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->required()
+                                    ->readOnly()
+                                    ->columnSpan(2),   
                             ])
-                            ->columns(5)
+                            ->columns(8)
                             ->columnSpanFull()
                             ->defaultItems(1)
                             ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get) => self::updateTotals($set, $get))
