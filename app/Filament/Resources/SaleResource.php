@@ -35,23 +35,14 @@ class SaleResource extends Resource
         return $form
             ->schema([
                 // Sección: Tipo de Documento
-                Forms\Components\Section::make('Tipo Documento')
+                Forms\Components\Section::make('Vendedor')
                     ->schema([
-                        Forms\Components\Select::make('document_type')
-                            ->label('Tipo Comprobante')
-                            ->options(TypeReceipt::class)
-                            ->live()
-                            ->required()
-                            ->afterStateUpdated(function ($state, Set $set) {
-                                $result = SaleCalculationService::generateSeriesNumber(
-                                    $state,
-                                    Auth::id()
-                                );
-
-                                $set('series', $result['series']);
-                                $set('invoice_number', $result['invoice_number']);
-                                $set('serial', $result['serial']);
-                            }),
+                        Forms\Components\Select::make('user_id')
+                            ->label('Vendedor')
+                            ->relationship('user', 'name')
+                            ->searchable(['name', 'document'])
+                            ->preload()
+                            ->required(),
                     ])
                     ->columnSpan(4),
 
@@ -83,24 +74,40 @@ class SaleResource extends Resource
                 // Sección: Datos del Documento
                 Forms\Components\Section::make('Datos del Documento')
                     ->schema([
-                        Forms\Components\TextInput::make('series')
-                            ->label('Serie')
+                        Forms\Components\Select::make('document_type')
+                            ->label('Tipo Comprobante')
+                            ->options(TypeReceipt::class)
+                            ->live()
+                            ->required()
+                            ->afterStateUpdated(function ($state, Set $set) {
+                                $result = SaleCalculationService::generateSeriesNumber(
+                                    $state,
+                                    Auth::id()
+                                );
+
+                                $set('document_series', $result['document_series']);
+                                $set('document_number', $result['document_number']);
+                            })
+                            ->columnSpan(2),
+                        Forms\Components\TextInput::make('document_series')
+                            ->label(fn (Get $get) => match ($get('document_type')) {
+                                TypeReceipt::Bill => 'Serie de Factura',
+                                TypeReceipt::Ticket => 'Serie de Ticket',
+                                default => 'Serie',
+                            })
                             ->disabled()
                             ->dehydrated()
                             ->columnSpan(2),
-
-                        Forms\Components\TextInput::make('invoice_number')
-                            ->label('Número de Factura')
+                        Forms\Components\TextInput::make('document_number')
+                            ->label(fn (Get $get) => match ($get('document_type')) {
+                                TypeReceipt::Bill => 'Número de Factura',
+                                TypeReceipt::Ticket => 'Número de Ticket',
+                                default => 'Número',
+                            })
                             ->disabled()
                             ->dehydrated()
                             ->columnSpan(2),
-
-                        Forms\Components\TextInput::make('serial')
-                            ->label('Serie Completa')
-                            ->disabled()
-                            ->columnSpan(2),
-
-                        Forms\Components\DatePicker::make('operation_date')
+                        Forms\Components\DatePicker::make('created_at')
                             ->label('Fecha de Operación')
                             ->required()
                             ->default(now())
