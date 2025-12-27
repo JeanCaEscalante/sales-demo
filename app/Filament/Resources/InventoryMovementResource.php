@@ -16,7 +16,7 @@ class InventoryMovementResource extends Resource
 
     protected static ?string $navigationGroup = 'Inventario';
 
-    protected static ?string $navigationLabel = 'Kardex / Movimientos';
+    protected static ?string $navigationLabel = 'Movimientos';
 
     protected static ?string $pluralLabel = 'Movimientos de Inventario';
 
