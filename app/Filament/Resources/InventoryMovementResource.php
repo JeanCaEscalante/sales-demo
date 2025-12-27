@@ -9,7 +9,6 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class InventoryMovementResource extends Resource
 {
@@ -27,45 +26,42 @@ class InventoryMovementResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Detalle del Movimiento')
-                    ->schema([
-                        Forms\Components\Select::make('product_id')
-                            ->relationship('product', 'name')
-                            ->label('Producto')
-                            ->readOnly(),
-                        Forms\Components\Select::make('user_id')
-                            ->relationship('user', 'name')
-                            ->label('Usuario')
-                            ->readOnly(),
-                        Forms\Components\TextInput::make('type')
-                            ->label('Tipo')
-                            ->readOnly(),
-                        Forms\Components\TextInput::make('reason')
-                            ->label('Motivo')
-                            ->readOnly(),
-                        Forms\Components\TextInput::make('quantity')
-                            ->label('Cantidad')
-                            ->numeric()
-                            ->readOnly(),
-                        Forms\Components\TextInput::make('previous_stock')
-                            ->label('Stock Anterior')
-                            ->numeric()
-                            ->readOnly(),
-                        Forms\Components\TextInput::make('new_stock')
-                            ->label('Stock Nuevo')
-                            ->numeric()
-                            ->readOnly(),
-                        Forms\Components\TextInput::make('reference_type')
-                            ->label('Tipo Referencia')
-                            ->readOnly(),
-                        Forms\Components\TextInput::make('reference_id')
-                            ->label('ID Referencia')
-                            ->readOnly(),
-                        Forms\Components\Textarea::make('notes')
-                            ->label('Notas')
-                            ->columnSpanFull()
-                            ->readOnly(),
-                    ])->columns(3),
+                Forms\Components\Select::make('product_id')
+                    ->relationship('product', 'name')
+                    ->label('Producto')
+                    ->disabled(),
+                Forms\Components\Select::make('user_id')
+                    ->relationship('user', 'name')
+                    ->label('Usuario')
+                    ->disabled(),
+                Forms\Components\TextInput::make('type')
+                    ->label('Tipo')
+                    ->readOnly(),
+                Forms\Components\TextInput::make('reason')
+                    ->label('Motivo')
+                    ->readOnly(),
+                Forms\Components\TextInput::make('quantity')
+                    ->label('Cantidad')
+                    ->numeric()
+                    ->readOnly(),
+                Forms\Components\TextInput::make('previous_stock')
+                    ->label('Stock Anterior')
+                    ->numeric()
+                    ->readOnly(),
+                Forms\Components\TextInput::make('new_stock')
+                    ->label('Stock Nuevo')
+                    ->numeric()
+                    ->readOnly(),
+                Forms\Components\TextInput::make('reference_type')
+                    ->label('Tipo Referencia')
+                    ->readOnly(),
+                Forms\Components\TextInput::make('reference_id')
+                    ->label('ID Referencia')
+                    ->readOnly(),
+                Forms\Components\Textarea::make('notes')
+                    ->label('Notas')
+                    ->columnSpanFull()
+                    ->readOnly(),
             ]);
     }
 
@@ -135,7 +131,9 @@ class InventoryMovementResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->modalHeading('Movimiento de Inventario')
+                    ->modalDescription('Detalles del movimiento de inventario'),
             ])
             ->bulkActions([
                 // No bulk actions for audit logs

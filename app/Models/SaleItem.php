@@ -61,8 +61,3 @@ class SaleItem extends Model
         return $this->belongsTo(TaxRate::class, 'tax_rate_id');
     }
 }
-
-
-
-
-

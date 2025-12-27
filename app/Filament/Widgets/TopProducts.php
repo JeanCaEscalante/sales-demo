@@ -11,7 +11,7 @@ class TopProducts extends BaseWidget
 {
     protected static ?string $heading = 'Top 5 Productos más vendidos';
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     public function table(Table $table): Table
     {

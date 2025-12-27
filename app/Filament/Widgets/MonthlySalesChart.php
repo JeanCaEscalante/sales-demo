@@ -13,7 +13,7 @@ class MonthlySalesChart extends ChartWidget
     {
         $data = [];
         $labels = [];
-        
+
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
             $labels[] = $date->translatedFormat('F');

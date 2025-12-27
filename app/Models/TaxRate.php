@@ -40,7 +40,3 @@ class TaxRate extends Model
         'is_shipping' => 'boolean',
     ];
 }
-
-
-
-

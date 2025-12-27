@@ -46,15 +46,15 @@ class InventoryService
     private function recordMovement(string $type, float $quantity, float $previousStock, float $newStock, string $reason, $reference = null, ?string $notes = null)
     {
         InventoryMovement::create([
-            'product_id' => $this->product->product_id,
-            'user_id' => Auth::id() ?? 1, // Fallback to system user if not auth
+            'product_id' => $this->product->getKey(), // Usar getKey() del producto también
+            'user_id' => Auth::id(),
             'type' => $type,
             'quantity' => $quantity,
             'previous_stock' => $previousStock,
             'new_stock' => $newStock,
             'reason' => $reason,
-            'reference_type' => $reference ? get_class($reference) : null,
-            'reference_id' => $reference ? $reference->getKey() : null,
+            'referenceable_id' => $reference?->getKey(),
+            'referenceable_type' => get_class($reference),
             'notes' => $notes,
         ]);
     }

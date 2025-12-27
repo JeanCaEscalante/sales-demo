@@ -4,27 +4,30 @@ namespace App\Filament\Resources;
 
 use App\Enums\TypeReceipt;
 use App\Filament\Resources\SaleResource\Pages;
-use App\Models\Sale;
-use App\Models\Product;
-use App\Models\TaxRate;
 use App\Models\Discount;
+use App\Models\Product;
+use App\Models\Sale;
 use App\Services\SaleCalculationService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
-use Filament\Notifications\Notification;
 
 class SaleResource extends Resource
 {
     protected static ?string $model = Sale::class;
+
     protected static ?string $navigationLabel = 'Ventas';
+
     protected static ?string $pluralLabel = 'Ventas';
+
     protected static ?string $label = 'Venta';
+
     protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
 
     public static function form(Form $form): Form
@@ -44,7 +47,7 @@ class SaleResource extends Resource
                                     $state,
                                     Auth::id()
                                 );
-                                
+
                                 $set('series', $result['series']);
                                 $set('invoice_number', $result['invoice_number']);
                                 $set('serial', $result['serial']);
@@ -65,10 +68,10 @@ class SaleResource extends Resource
                             ->createOptionModalHeading('Crear Cliente')
                             ->live()
                             ->afterStateUpdated(function ($state, Set $set) {
-                                if (!$state) {
+                                if (! $state) {
                                     return;
                                 }
-                                
+
                                 $customer = \App\Models\Customer::find($state);
                                 if ($customer) {
                                     $set('customer_address', $customer->address);
@@ -85,18 +88,18 @@ class SaleResource extends Resource
                             ->disabled()
                             ->dehydrated()
                             ->columnSpan(2),
-                        
+
                         Forms\Components\TextInput::make('invoice_number')
                             ->label('Número de Factura')
                             ->disabled()
                             ->dehydrated()
                             ->columnSpan(2),
-                        
+
                         Forms\Components\TextInput::make('serial')
                             ->label('Serie Completa')
                             ->disabled()
                             ->columnSpan(2),
-                        
+
                         Forms\Components\DatePicker::make('operation_date')
                             ->label('Fecha de Operación')
                             ->required()
@@ -121,15 +124,15 @@ class SaleResource extends Resource
                                     ->required()
                                     ->live()
                                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                        if (!$state) {
+                                        if (! $state) {
                                             return;
                                         }
-                                        
+
                                         $product = Product::find($state);
-                                        if (!$product) {
+                                        if (! $product) {
                                             return;
                                         }
-                                        
+
                                         // Validar stock
                                         if ($product->stock <= 0) {
                                             Notification::make()
@@ -137,25 +140,26 @@ class SaleResource extends Resource
                                                 ->title('Sin stock')
                                                 ->body("El producto {$product->name} no tiene stock disponible")
                                                 ->send();
-                                            
+
                                             $set('product_id', null);
+
                                             return;
                                         }
-                                        
+
                                         // Cargar datos del producto
                                         $set('unit_price', $product->price_out);
                                         $set('quantity', 1);
-                                        
+
                                         // Cargar impuesto si existe
                                         if ($product->tax_rate_id) {
                                             $set('tax_rate_id', $product->tax_rate_id);
                                         }
-                                        
+
                                         // Calcular totales
                                         SaleCalculationService::calculateLineItem($get, $set);
                                     })
                                     ->columnSpan(4),
-                                
+
                                 Forms\Components\TextInput::make('quantity')
                                     ->label('Cantidad')
                                     ->required()
@@ -167,19 +171,20 @@ class SaleResource extends Resource
                                         $productId = $get('product_id');
                                         if ($productId) {
                                             $validation = SaleCalculationService::validateStock($productId, $state);
-                                            
-                                            if (!$validation['valid']) {
+
+                                            if (! $validation['valid']) {
                                                 Notification::make()
                                                     ->warning()
                                                     ->title('Stock insuficiente')
                                                     ->body($validation['message'])
                                                     ->send();
-                                                
+
                                                 $set('quantity', $validation['available_stock'] ?? 1);
+
                                                 return;
                                             }
                                         }
-                                        
+
                                         SaleCalculationService::calculateLineItem($get, $set);
                                     })
                                     ->columnSpan(2),
@@ -207,7 +212,7 @@ class SaleResource extends Resource
                                         SaleCalculationService::calculateLineItem($get, $set);
                                     })
                                     ->columnSpan(2),
-                                
+
                                 Forms\Components\Select::make('tax_rate_id')
                                     ->label('Impuesto')
                                     ->relationship('taxRate', 'name')
@@ -216,14 +221,14 @@ class SaleResource extends Resource
                                         SaleCalculationService::calculateLineItem($get, $set);
                                     })
                                     ->columnSpan(3),
-                                
+
                                 // Resultados calculados
                                 Forms\Components\TextInput::make('tax_amount')
                                     ->label('Monto Impuesto')
                                     ->readOnly()
                                     ->prefix('$')
                                     ->columnSpan(3),
-                                
+
                                 Forms\Components\TextInput::make('subtotal')
                                     ->label('Total Línea')
                                     ->readOnly()
@@ -251,7 +256,7 @@ class SaleResource extends Resource
                 // Sección: Totales
                 Forms\Components\Section::make('Totales')
                     ->schema([
-                       /*  Forms\Components\Select::make('discount_id')
+                        /*  Forms\Components\Select::make('discount_id')
                             ->label('Código de Descuento')
                             ->relationship('discount', 'code')
                             ->searchable(['code', 'name'])
@@ -259,25 +264,25 @@ class SaleResource extends Resource
                             ->afterStateUpdated(function ($state, Get $get, Set $set) {
                                 SaleCalculationService::applyDiscount($get, $set, $state);
                             }), */
-                        
+
                         Forms\Components\TextInput::make('total_base')
                             ->label('Subtotal Base')
                             ->readOnly()
                             ->prefix('$')
                             ->default('0.00'),
-                        
+
                         Forms\Components\TextInput::make('total_taxes')
                             ->label('Total Impuestos')
                             ->readOnly()
                             ->prefix('$')
                             ->default('0.00'),
-                        
+
                         Forms\Components\TextInput::make('total_discounts')
                             ->label('Descuentos')
                             ->readOnly()
                             ->prefix('$')
                             ->default('0.00'),
-                        
+
                         Forms\Components\TextInput::make('total_amount')
                             ->label('TOTAL A PAGAR')
                             ->readOnly()
@@ -302,13 +307,13 @@ class SaleResource extends Resource
                                         'TYPE_DEBIT' => 'Recibo Domiciliado',
                                     ])
                                     ->required(),
-                                
+
                                 Forms\Components\TextInput::make('amount')
                                     ->label('Cantidad')
                                     ->numeric()
                                     ->required()
                                     ->prefix('€'),
-                                
+
                                 Forms\Components\DatePicker::make('dueDate')
                                     ->label('Fecha de Vencimiento'),
                             ])
@@ -331,27 +336,27 @@ class SaleResource extends Resource
                     ->label('Nº Documento')
                     ->searchable()
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('customer.name')
                     ->label('Cliente')
                     ->searchable()
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('operation_date')
                     ->label('Fecha')
                     ->date('d/m/Y')
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('type_document')
                     ->label('Tipo')
                     ->badge()
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('total_amount')
                     ->label('Total')
                     ->money('USD')
                     ->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime('d/m/Y H:i')
@@ -362,7 +367,7 @@ class SaleResource extends Resource
                 Tables\Filters\SelectFilter::make('type_document')
                     ->label('Tipo de Documento')
                     ->options(TypeReceipt::class),
-                
+
                 Tables\Filters\Filter::make('operation_date')
                     ->form([
                         Forms\Components\DatePicker::make('from')

@@ -73,7 +73,3 @@ class Sale extends Model
         return $query->where('user_id', Auth::id());
     }
 }
-
-
-
-

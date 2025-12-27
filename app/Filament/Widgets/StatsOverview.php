@@ -16,15 +16,15 @@ class StatsOverview extends BaseWidget
         $salesMonth = Sale::whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year)
             ->sum('total_amount');
-        
+
         $lowStockCount = Product::whereColumn('stock', '<=', 'min_stock')->count();
 
         return [
-            Stat::make('Ventas de Hoy', '$' . number_format($salesToday, 2))
+            Stat::make('Ventas de Hoy', '$'.number_format($salesToday, 2))
                 ->description('Total vendido hoy')
                 ->descriptionIcon('heroicon-m-arrow-trending-up')
                 ->color('success'),
-            Stat::make('Ventas del Mes', '$' . number_format($salesMonth, 2))
+            Stat::make('Ventas del Mes', '$'.number_format($salesMonth, 2))
                 ->description('Total vendido este mes')
                 ->descriptionIcon('heroicon-m-shopping-cart')
                 ->color('primary'),

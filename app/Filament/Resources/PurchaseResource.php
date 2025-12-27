@@ -124,8 +124,8 @@ class PurchaseResource extends Resource
 
     public static function updateTotals(Forms\Set $set, Forms\Get $get): void
     {
-        $selectedProducts = collect($get('items'))->filter(fn ($item) => !empty($item['product_id']) && !empty($item['quantity']) && !empty($item['unit_cost']));
-        
+        $selectedProducts = collect($get('items'))->filter(fn ($item) => ! empty($item['product_id']) && ! empty($item['quantity']) && ! empty($item['unit_cost']));
+
         $total = $selectedProducts->reduce(function ($carry, $item) {
             return $carry + ($item['quantity'] * $item['unit_cost']);
         }, 0);
@@ -177,7 +177,7 @@ class PurchaseResource extends Resource
                         return $query
                             ->when($data['from'], fn ($query) => $query->whereDate('purchase_date', '>=', $data['from']))
                             ->when($data['until'], fn ($query) => $query->whereDate('purchase_date', '<=', $data['until']));
-                    })
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

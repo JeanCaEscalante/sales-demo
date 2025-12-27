@@ -10,43 +10,43 @@ class CategorySeeder extends Seeder
     protected $categories = [
         [
             'category_name' => 'Frutas y Verduras',
-            'description'   => 'Productos frescos, vegetales y frutas de temporada.',
+            'description' => 'Productos frescos, vegetales y frutas de temporada.',
         ],
         [
             'category_name' => 'Lácteos y Quesos',
-            'description'   => 'Leche, yogures, mantequillas y variedad de quesos.',
+            'description' => 'Leche, yogures, mantequillas y variedad de quesos.',
         ],
         [
             'category_name' => 'Carnicería',
-            'description'   => 'Cortes de res, cerdo, pollo y embutidos frescos.',
+            'description' => 'Cortes de res, cerdo, pollo y embutidos frescos.',
         ],
         [
             'category_name' => 'Abarrotes',
-            'description'   => 'Arroz, aceites, granos, pastas y productos no perecederos.',
+            'description' => 'Arroz, aceites, granos, pastas y productos no perecederos.',
         ],
         [
             'category_name' => 'Bebidas',
-            'description'   => 'Refrescos, aguas, jugos y bebidas energizantes.',
+            'description' => 'Refrescos, aguas, jugos y bebidas energizantes.',
         ],
         [
             'category_name' => 'Snacks y Galletas',
-            'description'   => 'Botanas saladas, galletas dulces y golosinas.',
+            'description' => 'Botanas saladas, galletas dulces y golosinas.',
         ],
         [
             'category_name' => 'Limpieza',
-            'description'   => 'Detergentes, desinfectantes y artículos para el hogar.',
+            'description' => 'Detergentes, desinfectantes y artículos para el hogar.',
         ],
         [
             'category_name' => 'Cuidado Personal',
-            'description'   => 'Jabones, shampoo, cremas y artículos de higiene.',
+            'description' => 'Jabones, shampoo, cremas y artículos de higiene.',
         ],
         [
             'category_name' => 'Panadería',
-            'description'   => 'Pan fresco del día, bollería y repostería.',
+            'description' => 'Pan fresco del día, bollería y repostería.',
         ],
         [
             'category_name' => 'Congelados',
-            'description'   => 'Alimentos precocidos, helados y verduras congeladas.',
+            'description' => 'Alimentos precocidos, helados y verduras congeladas.',
         ],
     ];
 
@@ -57,5 +57,4 @@ class CategorySeeder extends Seeder
     {
         Category::insert($this->categories);
     }
-
 }

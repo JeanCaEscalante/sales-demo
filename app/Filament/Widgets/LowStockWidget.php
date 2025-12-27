@@ -11,7 +11,7 @@ class LowStockWidget extends BaseWidget
 {
     protected static ?string $heading = 'Productos con Stock Bajo';
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     public function table(Table $table): Table
     {

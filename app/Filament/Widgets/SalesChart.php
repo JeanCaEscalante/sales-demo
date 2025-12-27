@@ -5,7 +5,6 @@ namespace App\Filament\Widgets;
 use App\Models\Sale;
 use Filament\Widgets\ChartWidget;
 use Flowframe\Trend\Trend;
-use Flowframe\Trend\TrendValue;
 
 class SalesChart extends ChartWidget
 {
@@ -15,10 +14,10 @@ class SalesChart extends ChartWidget
     {
         // If Trend package is not installed, we can do it manually.
         // Let's check if Trend is available.
-        
+
         $data = [];
         $labels = [];
-        
+
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
             $labels[] = $date->format('d/m');
