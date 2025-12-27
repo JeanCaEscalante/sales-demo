@@ -16,8 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('customer_id');
             $table->unsignedBigInteger('user_id');
             $table->enum('document_type', ['bill', 'ticket']);
-            $table->string('series')->nullable();
-            $table->string('invoice_number')->nullable();
+            $table->string('document_series')->nullable();
+            $table->string('document_number')->nullable();
             $table->double('total_base');
             $table->double('total_taxes');
             $table->double('total_discounts');
