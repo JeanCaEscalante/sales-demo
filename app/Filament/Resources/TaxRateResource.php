@@ -27,7 +27,11 @@ class TaxRateResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->label('Nombre del impuesto'),
                 Forms\Components\TextInput::make('rate')
-                    ->label('Tasa'),
+                    ->label('Tasa')
+                    ->numeric()
+                    ->minValue(0)
+                    ->maxValue(100)
+                    ->suffix('%'),
                 Forms\Components\Checkbox::make('is_active')
                     ->label('Activo'),
             ]);

@@ -27,8 +27,7 @@ class UnitResource extends Resource
                 Forms\Components\TextInput::make('code')
                     ->label('Código'),
                 Forms\Components\TextInput::make('name')
-                    ->label('Nombre')
-                    ->columnSpanFull(),
+                    ->label('Nombre'),
             ]);
     }
 
