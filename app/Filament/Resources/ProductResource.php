@@ -61,8 +61,8 @@ class ProductResource extends Resource
                 Forms\Components\TextInput::make('unit_price')
                     ->label('Precio unitario')
                     ->live()
-                    ->afterStateUpdated(function ($state, callable $set) {
-                        $set('price_out', $state * (1 + $set('profit') / 100));
+                    ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                        $set('price_out', $state * (1 + $get('profit') / 100));
                     })
                     ->numeric()
                     ->required(),
@@ -73,6 +73,7 @@ class ProductResource extends Resource
                     ->required(),
                 Forms\Components\Toggle::make('is_exempt')
                     ->label('Exento de impuesto')
+                    ->live()
                     ->inline(false)
                     ->default(false),
                 Forms\Components\Select::make('tax_rate_id')
@@ -80,12 +81,12 @@ class ProductResource extends Resource
                     ->label('Impuesto')
                     ->searchable()
                     ->preload()
-                    ->required(),
+                    ->requiredIf('is_exempt', false)
+                    ->visible(fn (Forms\Get $get) => ! $get('is_exempt')),
                 Forms\Components\Textarea::make('description')
                     ->label('Descripción')
                     ->rows(4)
                     ->columnSpanFull(),
-                
 
             ]);
     }
