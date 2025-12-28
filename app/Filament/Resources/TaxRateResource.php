@@ -24,22 +24,12 @@ class TaxRateResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('country')
-                    ->label('País'),
-                Forms\Components\TextInput::make('state')
-                    ->label('Estado/Región'),
                 Forms\Components\TextInput::make('name')
                     ->label('Nombre del impuesto'),
                 Forms\Components\TextInput::make('rate')
                     ->label('Tasa'),
-                Forms\Components\TextInput::make('priority')
-                    ->label('Prioridad')
-                    ->numeric()
-                    ->columnSpanFull(),
-                Forms\Components\Checkbox::make('is_composed')
-                    ->label('Compuesto'),
-                Forms\Components\Checkbox::make('is_shipping')
-                    ->label('Envió'),
+                Forms\Components\Checkbox::make('is_active')
+                    ->label('Activo'),
             ]);
     }
 
@@ -47,28 +37,20 @@ class TaxRateResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('country')
-                    ->label('País'),
-                Tables\Columns\TextColumn::make('state')
-                    ->label('Estado/Región'),
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nombre'),
                 Tables\Columns\TextColumn::make('rate')
                     ->label('Tasa'),
-                Tables\Columns\TextColumn::make('priority')
-                    ->label('Prioridad'),
-                Tables\Columns\IconColumn::make('is_composed')
+                Tables\Columns\IconColumn::make('is_active')
                     ->boolean()
-                    ->label('Compuesto'),
-                Tables\Columns\IconColumn::make('is_shipping')
-                    ->boolean()
-                    ->label('Envió'),
+                    ->label('Activo'),
             ])
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -87,9 +69,7 @@ class TaxRateResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListTaxRates::route('/'),
-            'create' => Pages\CreateTaxRate::route('/create'),
-            'edit' => Pages\EditTaxRate::route('/{record}/edit'),
+            'index' => Pages\ManageTaxRates::route('/'),
         ];
     }
 }

@@ -39,12 +39,10 @@ class ProductResource extends Resource
                     ->preload()
                     ->searchable(),
                 Forms\Components\TextInput::make('code')
-                    ->label('Código')
-                    ->columnSpanFull(),
+                    ->label('Código'),
                 Forms\Components\TextInput::make('name')
                     ->label('Nombre')
-                    ->required()
-                    ->columnSpanFull(),
+                    ->required(),
                 Forms\Components\TextInput::make('stock')
                     ->label('Cantidad')
                     ->numeric()

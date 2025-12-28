@@ -26,17 +26,12 @@ class TaxRate extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'country',
-        'state',
         'name',
         'rate',
-        'priority',
-        'is_composed',
-        'is_shipping',
+        'is_active'
     ];
 
     protected $casts = [
-        'is_composed' => 'boolean',
-        'is_shipping' => 'boolean',
+        'is_active' => 'boolean'
     ];
 }

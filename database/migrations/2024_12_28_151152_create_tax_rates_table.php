@@ -13,13 +13,9 @@ return new class extends Migration
     {
         Schema::create('tax_rates', function (Blueprint $table) {
             $table->bigIncrements('tax_rate_id');
-            $table->string('country');
-            $table->string('state');
             $table->string('name');
             $table->decimal('rate', 5, 2);
-            $table->bigInteger('priority')->default(0);
-            $table->boolean('is_composed')->default(false);
-            $table->boolean('is_shipping')->default(false);
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

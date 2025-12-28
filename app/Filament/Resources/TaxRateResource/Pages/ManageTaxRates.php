@@ -4,16 +4,16 @@ namespace App\Filament\Resources\TaxRateResource\Pages;
 
 use App\Filament\Resources\TaxRateResource;
 use Filament\Actions;
-use Filament\Resources\Pages\EditRecord;
+use Filament\Resources\Pages\ManageRecords;
 
-class EditTaxRate extends EditRecord
+class ManageTaxRates extends ManageRecords
 {
     protected static string $resource = TaxRateResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\CreateAction::make(),
         ];
     }
 }
