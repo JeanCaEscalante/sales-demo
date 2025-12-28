@@ -12,6 +12,14 @@ class UnitMeasureSeeder extends Seeder
             'code' => 'pcs',
             'name' => 'Piezas',
         ],
+        [
+            'code' => 'cj',
+            'name' => 'Cajas',
+        ],
+        [
+            'code' => 'und',
+            'name' => 'Unidades',
+        ],
 
         // Unidades de Peso
         [
@@ -63,11 +71,6 @@ class UnitMeasureSeeder extends Seeder
             'name' => 'Pulgadas',
         ],
 
-        //Otras unidades
-        [
-            'code' => 'hr',
-            'name' => 'Horas',
-        ],
         [
             'code' => 'other',
             'name' => 'Otros',
