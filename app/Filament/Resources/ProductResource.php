@@ -77,6 +77,12 @@ class ProductResource extends Resource
                     ->label('Exento de impuesto')
                     ->inline(false)
                     ->default(false),
+                Forms\Components\Select::make('tax_rate_id')
+                    ->relationship(name: 'tax_rate', titleAttribute: 'name')
+                    ->label('Impuesto')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
                 Forms\Components\Textarea::make('description')
                     ->label('Descripción')
                     ->rows(4)

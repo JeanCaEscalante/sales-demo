@@ -42,6 +42,7 @@ class Product extends Model
         'price_out',
         'description',
         'is_exempt',
+        'tax_rate_id'
     ];
 
     /**
@@ -93,6 +94,14 @@ class Product extends Model
         return $this->morphMany(Discount::class, 'discountable');
     }
 
+    /**
+     * Get the tax rate that owns the product.
+     */
+    public function tax_rate(): BelongsTo
+    {
+        return $this->belongsTo(TaxRate::class);
+    }
+
     public function setPriceIn(float $price): void
     {
         $this->price_in = $price;
@@ -116,4 +125,7 @@ class Product extends Model
         $this->stock -= $quantity;
         $this->save();
     }
+
+
+
 }
