@@ -42,7 +42,7 @@ class Product extends Model
         'price_out',
         'description',
         'is_exempt',
-        'tax_rate_id'
+        'tax_rate_id',
     ];
 
     /**
@@ -99,12 +99,12 @@ class Product extends Model
      */
     public function tax_rate(): BelongsTo
     {
-        return $this->belongsTo(TaxRate::class);
+        return $this->belongsTo(TaxRate::class, 'tax_rate_id');
     }
 
-    public function setPriceIn(float $price): void
+    public function setUnitPrice(float $price): void
     {
-        $this->price_in = $price;
+        $this->unit_price = $price;
         $this->save();
     }
 
@@ -125,7 +125,4 @@ class Product extends Model
         $this->stock -= $quantity;
         $this->save();
     }
-
-
-
 }
