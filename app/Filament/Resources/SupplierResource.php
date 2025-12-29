@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Enums\TypeContact;
+use App\Enums\TypeLabel;
 use App\Enums\TypeDocument;
 use App\Filament\Resources\SupplierResource\Pages;
 use App\Filament\Resources\SupplierResource\RelationManagers;
@@ -44,8 +45,6 @@ class SupplierResource extends Resource
                     ->label('Dirección')
                     ->rows(4)
                     ->columnSpanFull(),
-                Forms\Components\TextInput::make('payment_terms')
-                    ->label('Términos de Pago'),
                 Forms\Components\Textarea::make('notes')
                     ->label('Notas')
                     ->rows(3)
@@ -62,13 +61,14 @@ class SupplierResource extends Resource
                         Forms\Components\TextInput::make('contact')
                             ->label('Contacto')
                             ->required(),
-                        Forms\Components\TextInput::make('label')
+                        Forms\Components\Select::make('label')
                             ->label('Etiqueta')
-                            ->placeholder('Ej: Oficina, Casa, Principal')
-                            ->maxLength(50),
+                            ->options(TypeLabel::class)
+                            ->required(),
                         Forms\Components\Toggle::make('is_primary')
                             ->label('Contacto Principal')
-                            ->default(false),
+                            ->default(false)
+                            ->inline(false),
                     ])
                     ->columns(2)
                     ->columnSpanFull(),

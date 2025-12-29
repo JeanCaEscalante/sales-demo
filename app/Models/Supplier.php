@@ -35,8 +35,7 @@ class Supplier extends Model
         'document',
         'name',
         'address',
-        'payment_terms',
-        'notes',
+        'notes'
     ];
 
     /**
