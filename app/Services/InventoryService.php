@@ -17,7 +17,7 @@ class InventoryService
 
     public function updatePurchasePrice(float $price)
     {
-        $this->product->setPriceIn($price);
+        $this->product->setUnitPrice($price);
     }
 
     public function updateSalePrice(float $price)
