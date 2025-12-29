@@ -22,7 +22,7 @@ class InventoryService
 
     public function updateSalePrice(float $price)
     {
-        $this->product->setPriceOut($price);
+        $this->product->setSalePrice($price);
     }
 
     public function addToStock(float $quantity, string $reason = 'Compra', $reference = null, ?string $notes = null)
