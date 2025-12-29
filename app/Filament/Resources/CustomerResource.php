@@ -10,8 +10,10 @@ use App\Models\Customer;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class CustomerResource extends Resource
 {
@@ -25,56 +27,178 @@ class CustomerResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
+    protected static ?string $navigationGroup = 'Ventas';
+
+    protected static ?int $navigationSort = 1;
+
+    protected static ?string $recordTitleAttribute = 'name';
+
+    public static function getGlobalSearchResultDetails(Model $record): array
+    {
+        return [
+            'Documento' => $record->type_document->getLabel().': '.$record->document,
+            'Crédito' => '$'.number_format($record->credit_limit ?? 0, 2),
+        ];
+    }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'document', 'address'];
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('type_document')
-                    ->label('Tipo documento')
-                    ->options(TypeDocument::class)
-                    ->required(),
-                Forms\Components\TextInput::make('document')
-                    ->label('Documento')
-                    ->required(),
-                Forms\Components\TextInput::make('name')
-                    ->label('Nombre')
-                    ->required()
-                    ->columnSpanFull(),
-                Forms\Components\Textarea::make('address')
-                    ->label('Dirección')
-                    ->rows(4)
-                    ->columnSpanFull(),
-                Forms\Components\TextInput::make('credit_limit')
-                    ->label('Límite de Crédito')
-                    ->numeric()
-                    ->prefix('$'),
-                Forms\Components\Textarea::make('notes')
-                    ->label('Notas')
-                    ->rows(3)
-                    ->columnSpanFull(),
-                Forms\Components\Repeater::make('contacts')
-                    ->relationship()
-                    ->label('Contactos')
+                Forms\Components\Group::make()
                     ->schema([
-                        Forms\Components\Select::make('type_contact')
-                            ->label('Tipo contacto')
-                            ->options(TypeContact::class)
-                            ->live()
-                            ->required(),
-                        Forms\Components\TextInput::make('contact')
-                            ->label('Contacto')
-                            ->required(),
-                        Forms\Components\TextInput::make('label')
-                            ->label('Etiqueta')
-                            ->placeholder('Ej: Oficina, Casa, Principal')
-                            ->maxLength(50),
-                        Forms\Components\Toggle::make('is_primary')
-                            ->label('Contacto Principal')
-                            ->default(false),
+                        Forms\Components\Section::make('Información del Cliente')
+                            ->icon('heroicon-o-user')
+                            ->schema([
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Nombre completo / Razón social')
+                                    ->placeholder('Ej: Juan Pérez o Empresa S.A.')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->columnSpanFull(),
+                                Forms\Components\Select::make('type_document')
+                                    ->label('Tipo de documento')
+                                    ->options(TypeDocument::class)
+                                    ->live()
+                                    ->required()
+                                    ->native(false),
+                                Forms\Components\TextInput::make('document')
+                                    ->label('Número de documento')
+                                    ->placeholder(fn (Forms\Get $get) => match ($get('type_document')?->value ?? $get('type_document')) {
+                                        'nit' => '900.123.456-7',
+                                        'cedula' => '1.234.567.890',
+                                        'pasaporte' => 'AB1234567',
+                                        default => 'Ingrese el documento'
+                                    })
+                                    ->required()
+                                    ->unique(ignoreRecord: true),
+                                Forms\Components\Textarea::make('address')
+                                    ->label('Dirección')
+                                    ->placeholder('Calle, número, barrio, ciudad...')
+                                    ->rows(2)
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(2),
+
+                        Forms\Components\Section::make('Contactos')
+                            ->icon('heroicon-o-phone')
+                            ->description('Agrega los medios de contacto del cliente')
+                            ->schema([
+                                Forms\Components\Repeater::make('contacts')
+                                    ->relationship()
+                                    ->label('')
+                                    ->schema([
+                                        Forms\Components\Select::make('type_contact')
+                                            ->label('Tipo')
+                                            ->options(TypeContact::class)
+                                            ->live()
+                                            ->required()
+                                            ->native(false),
+                                        Forms\Components\TextInput::make('contact')
+                                            ->label('Contacto')
+                                            ->placeholder(fn (Forms\Get $get) => match ($get('type_contact')?->value ?? $get('type_contact')) {
+                                                'phone', 'mobile' => '+57 300 123 4567',
+                                                'email' => 'cliente@email.com',
+                                                'whatsapp' => '+57 300 123 4567',
+                                                default => ''
+                                            })
+                                            ->required()
+                                            ->columnSpan(2),
+                                        Forms\Components\TextInput::make('label')
+                                            ->label('Etiqueta')
+                                            ->placeholder('Ej: Casa, Oficina')
+                                            ->maxLength(50),
+                                        Forms\Components\Toggle::make('is_primary')
+                                            ->label('Principal')
+                                            ->inline(),
+                                    ])
+                                    ->columns(5)
+                                    ->reorderable()
+                                    ->collapsible()
+                                    ->cloneable()
+                                    ->itemLabel(fn (array $state): ?string => $state['contact'] ?? 'Nuevo contacto'
+                                    )
+                                    ->defaultItems(1)
+                                    ->addActionLabel('Agregar contacto')
+                                    ->columnSpanFull(),
+                            ]),
                     ])
-                    ->columns(2)
-                    ->columnSpanFull(),
-            ]);
+                    ->columnSpan(['lg' => 2]),
+
+                Forms\Components\Group::make()
+                    ->schema([
+                        Forms\Components\Section::make('Crédito')
+                            ->icon('heroicon-o-banknotes')
+                            ->schema([
+                                Forms\Components\TextInput::make('credit_limit')
+                                    ->label('Límite de crédito')
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->default(0)
+                                    ->mask(RawJs::make('$money($input)'))
+                                    ->stripCharacters(',')
+                                    ->helperText('Monto máximo permitido a crédito'),
+                                Forms\Components\Placeholder::make('credit_used')
+                                    ->label('Crédito utilizado')
+                                    ->content(fn (?Customer $record): string => '$'.number_format($record?->sales()->where('status', 'pending')->sum('total_amount') ?? 0, 2)
+                                    )
+                                    ->hidden(fn (?Customer $record) => $record === null),
+                                Forms\Components\Placeholder::make('credit_available')
+                                    ->label('Disponible')
+                                    ->content(function (?Customer $record): string {
+                                        if (! $record) {
+                                            return '—';
+                                        }
+                                        $used = $record->sales()->where('status', 'pending')->sum('total_amount');
+                                        $available = ($record->credit_limit ?? 0) - $used;
+
+                                        return '$'.number_format(max(0, $available), 2);
+                                    })
+                                    ->hidden(fn (?Customer $record) => $record === null),
+                            ]),
+
+                        Forms\Components\Section::make('Resumen')
+                            ->icon('heroicon-o-chart-bar')
+                            ->schema([
+                                Forms\Components\Placeholder::make('sales_count')
+                                    ->label('Total de compras')
+                                    ->content(fn (?Customer $record): string => $record?->sales()->count() ?? '0'
+                                    ),
+                                Forms\Components\Placeholder::make('total_purchased')
+                                    ->label('Monto total')
+                                    ->content(fn (?Customer $record): string => '$'.number_format($record?->sales()->sum('total_amount') ?? 0, 2)
+                                    ),
+                                Forms\Components\Placeholder::make('created_at')
+                                    ->label('Cliente desde')
+                                    ->content(fn (?Customer $record): string => $record?->created_at?->format('d/m/Y') ?? '—'
+                                    ),
+                            ])
+                            ->hidden(fn (?Customer $record) => $record === null),
+
+                        Forms\Components\Section::make('Notas')
+                            ->icon('heroicon-o-document-text')
+                            ->schema([
+                                Forms\Components\Textarea::make('notes')
+                                    ->label('')
+                                    ->placeholder('Notas internas sobre este cliente...')
+                                    ->rows(3),
+                            ])
+                            ->collapsible()
+                            ->collapsed(),
+                    ])
+                    ->columnSpan(['lg' => 1]),
+            ])
+            ->columns(3);
     }
 
     public static function table(Table $table): Table
@@ -82,43 +206,151 @@ class CustomerResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Nombre')
+                    ->label('Cliente')
                     ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('type_document')
-                    ->label('Tipo')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('document')
-                    ->label('Documento')
-                    ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->weight('bold')
+                    ->description(fn (Customer $record): string => $record->type_document->getLabel().': '.$record->document
+                    ),
+                Tables\Columns\TextColumn::make('primary_contact')
+                    ->label('Contacto')
+                    ->getStateUsing(function (Customer $record) {
+                        $primary = $record->contacts()->where('is_primary', true)->first()
+                            ?? $record->contacts()->first();
+
+                        return $primary?->contact ?? '—';
+                    })
+                    ->icon(fn (Customer $record) => match (
+                        $record->contacts()->where('is_primary', true)->first()?->type_contact?->value
+                        ?? $record->contacts()->first()?->type_contact?->value
+                    ) {
+                        'phone', 'mobile' => 'heroicon-o-phone',
+                        'email' => 'heroicon-o-envelope',
+                        'whatsapp' => 'heroicon-o-chat-bubble-left',
+                        default => null
+                    })
+                    ->copyable()
+                    ->copyMessage('Copiado'),
                 Tables\Columns\TextColumn::make('credit_limit')
-                    ->label('Límite Crédito')
+                    ->label('Límite crédito')
                     ->money('USD')
-                    ->sortable(),
+                    ->sortable()
+                    ->color(fn (Customer $record): string => ($record->credit_limit ?? 0) > 0 ? 'success' : 'gray'
+                    ),
+                Tables\Columns\TextColumn::make('sales_count')
+                    ->label('Compras')
+                    ->counts('sales')
+                    ->sortable()
+                    ->badge()
+                    ->color(fn (int $state): string => match (true) {
+                        $state === 0 => 'gray',
+                        $state < 5 => 'info',
+                        $state < 15 => 'success',
+                        default => 'warning',
+                    }),
                 Tables\Columns\TextColumn::make('sales_sum_total_amount')
-                    ->label('Total Compras')
+                    ->label('Total comprado')
                     ->sum('sales', 'total_amount')
                     ->money('USD')
-                    ->sortable(),
+                    ->sortable()
+                    ->weight('bold')
+                    ->color('success'),
                 Tables\Columns\TextColumn::make('address')
                     ->label('Dirección')
-                    ->limit(30)
+                    ->limit(35)
+                    ->tooltip(fn (Customer $record) => $record->address)
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Registrado')
+                    ->date('d M Y')
+                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('name')
             ->filters([
                 Tables\Filters\SelectFilter::make('type_document')
-                    ->label('Tipo de Documento')
+                    ->label('Tipo documento')
                     ->options(TypeDocument::class),
+                Tables\Filters\Filter::make('has_credit')
+                    ->label('Con crédito')
+                    ->query(fn ($query) => $query->where('credit_limit', '>', 0))
+                    ->toggle(),
+                Tables\Filters\Filter::make('has_sales')
+                    ->label('Con compras')
+                    ->query(fn ($query) => $query->has('sales'))
+                    ->toggle(),
+                Tables\Filters\Filter::make('no_sales')
+                    ->label('Sin compras')
+                    ->query(fn ($query) => $query->doesntHave('sales'))
+                    ->toggle(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+
+                    Tables\Actions\Action::make('call')
+                        ->label('Llamar')
+                        ->icon('heroicon-o-phone')
+                        ->color('success')
+                        ->url(fn (Customer $record): ?string => ($phone = $record->contacts()
+                            ->whereIn('type_contact', ['phone', 'mobile'])
+                            ->first())
+                            ? "tel:{$phone->contact}"
+                            : null
+                        )
+                        ->openUrlInNewTab()
+                        ->visible(fn (Customer $record) => $record->contacts()->whereIn('type_contact', ['phone', 'mobile'])->exists()
+                        ),
+                    Tables\Actions\Action::make('whatsapp')
+                        ->label('WhatsApp')
+                        ->icon('heroicon-o-chat-bubble-left-ellipsis')
+                        ->color('success')
+                        ->url(fn (Customer $record): ?string => ($wa = $record->contacts()
+                            ->where('type_contact', 'whatsapp')
+                            ->first())
+                            ? 'https://wa.me/'.preg_replace('/[^0-9]/', '', $wa->contact)
+                            : null
+                        )
+                        ->openUrlInNewTab()
+                        ->visible(fn (Customer $record) => $record->contacts()->where('type_contact', 'whatsapp')->exists()
+                        ),
+                    Tables\Actions\Action::make('email')
+                        ->label('Enviar email')
+                        ->icon('heroicon-o-envelope')
+                        ->color('info')
+                        ->url(fn (Customer $record): ?string => ($email = $record->contacts()
+                            ->where('type_contact', 'email')
+                            ->first())
+                            ? "mailto:{$email->contact}"
+                            : null
+                        )
+                        ->visible(fn (Customer $record) => $record->contacts()->where('type_contact', 'email')->exists()
+                        ),
+
+                    Tables\Actions\Action::make('newSale')
+                        ->label('Nueva venta')
+                        ->icon('heroicon-o-shopping-cart')
+                        ->color('primary')
+                        ->url(fn (Customer $record) => route('filament.admin.resources.sales.create', ['customer_id' => $record->id])
+                        ),
+
+                    Tables\Actions\DeleteAction::make()
+                        ->requiresConfirmation(),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+            ])
+            ->emptyStateHeading('Sin clientes registrados')
+            ->emptyStateDescription('Agrega tu primer cliente para comenzar a vender.')
+            ->emptyStateIcon('heroicon-o-user-group')
+            ->emptyStateActions([
+                Tables\Actions\CreateAction::make()
+                    ->label('Agregar cliente')
+                    ->icon('heroicon-o-plus'),
             ]);
     }
 

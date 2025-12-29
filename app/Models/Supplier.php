@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TypeDocument;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -35,7 +36,11 @@ class Supplier extends Model
         'document',
         'name',
         'address',
-        'notes'
+        'notes',
+    ];
+
+    protected $casts = [
+        'type_document' => TypeDocument::class,
     ];
 
     /**

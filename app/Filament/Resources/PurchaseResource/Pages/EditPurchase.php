@@ -25,7 +25,7 @@ class EditPurchase extends EditRecord
                     $item['tax_rate_id'] = null;
                     $item['tax_rate'] = null;
                     $item['tax_name'] = null;
-                } elseif (!empty($item['tax_rate_id'])) {
+                } elseif (! empty($item['tax_rate_id'])) {
                     $tax = \App\Models\TaxRate::find($item['tax_rate_id']);
                     if ($tax) {
                         $item['tax_rate'] = $tax->rate;

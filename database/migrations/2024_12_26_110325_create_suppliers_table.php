@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('document');
             $table->string('name');
             $table->mediumText('address');
-            $table->string('payment_terms')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
         });

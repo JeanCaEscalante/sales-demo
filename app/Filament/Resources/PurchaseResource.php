@@ -140,7 +140,7 @@ class PurchaseResource extends Resource
                                                     ->label('Precio Unitario')
                                                     ->numeric()
                                                     ->prefix('$')
-                                                    ->step(0.01)
+                                                    ->step(0.0001)
                                                     ->required()
                                                     ->live(onBlur: true)
                                                     ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {

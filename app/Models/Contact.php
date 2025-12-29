@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TypeContact;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -45,6 +46,7 @@ class Contact extends Model
      */
     protected $casts = [
         'is_primary' => 'boolean',
+        'type_contact' => TypeContact::class,
     ];
 
     /**
