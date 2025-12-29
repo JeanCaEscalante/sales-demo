@@ -18,8 +18,10 @@ return new class extends Migration
             $table->string('code')->nullable();
             $table->text('name');
             $table->bigInteger('stock');
+            $table->bigInteger('min_stock')->nullable();
+            $table->integer('profit')->nullable();
             $table->double('unit_price');
-            $table->double('price_out');
+            $table->double('sale_price');
             $table->mediumText('description')->nullable();
             $table->timestamps();
 

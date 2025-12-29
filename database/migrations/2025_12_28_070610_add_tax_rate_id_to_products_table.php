@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->boolean('is_exempt')->default(false)->after('price_out');
+            $table->boolean('is_tax_exempt')->default(false)->after('sale_price');
             $table->unsignedBigInteger('tax_rate_id')->nullable();
             $table->foreign('tax_rate_id')->references('tax_rate_id')->on('tax_rates');
         });
@@ -24,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('products', function (Blueprint $table) {
-            $table->dropColumn('is_exempt');
+            $table->dropColumn('is_tax_exempt');
             $table->dropForeign(['tax_rate_id']);
             $table->dropColumn('tax_rate_id');
         });
