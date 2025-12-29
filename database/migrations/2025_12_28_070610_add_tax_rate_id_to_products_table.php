@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('products', function (Blueprint $table) {
             $table->boolean('is_tax_exempt')->default(false)->after('sale_price');
-            $table->unsignedBigInteger('tax_rate_id')->nullable();
+            $table->unsignedBigInteger('tax_rate_id')->nullable()->after('is_tax_exempt');
             $table->foreign('tax_rate_id')->references('tax_rate_id')->on('tax_rates');
         });
     }
