@@ -25,11 +25,6 @@ class Product extends Model
      */
     protected $primaryKey = 'product_id';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'category_id',
         'unit_id',
@@ -37,12 +32,12 @@ class Product extends Model
         'name',
         'stock',
         'min_stock',
-        'profit',
         'unit_price',
-        'price_out',
+        'profit',
+        'sale_price',      // antes: price_out
         'description',
-        'is_exempt',
-        'tax_rate_id',
+        'is_tax_exempt',      // antes: is_exempt
+        'tax_rate_id',          // antes: tax_rate_id
     ];
 
     /**
@@ -51,7 +46,7 @@ class Product extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'is_exempt' => 'boolean',
+        'is_tax_exempt' => 'boolean',
     ];
 
     /**
@@ -108,9 +103,9 @@ class Product extends Model
         $this->save();
     }
 
-    public function setPriceOut(float $price): void
+    public function setSalePrice(float $price): void
     {
-        $this->price_out = $price;
+        $this->sale_price = $price;
         $this->save();
     }
 

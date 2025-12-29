@@ -20,7 +20,7 @@ class PurchaseItem extends Model
         'discount',
         'subtotal',
         'tax_exempt',
-        'tax_id',
+        'tax_rate_id',
         'tax_rate',
         'tax_name',
         'tax_amount',
