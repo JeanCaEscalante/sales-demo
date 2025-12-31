@@ -2,9 +2,10 @@
 
 namespace App\Enums;
 
+use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum TypeMoviment: string implements HasLabel
+enum TypeMovement: string implements HasLabel, HasColor
 {
     case INPUT = 'input';
     case OUTPUT = 'output';
@@ -14,6 +15,14 @@ enum TypeMoviment: string implements HasLabel
         return match ($this) {
             self::INPUT => 'Entrada',
             self::OUTPUT => 'Salida',
+        };
+    }
+
+    public function getColor(): ?string
+    {
+        return match ($this) {
+            self::INPUT => 'success',
+            self::OUTPUT => 'danger',
         };
     }
 }

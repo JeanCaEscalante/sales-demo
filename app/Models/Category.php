@@ -11,6 +11,13 @@ class Category extends Model
     use HasFactory;
 
     /**
+     * Indicates if the model should be timestamped.
+     *
+     * @var bool
+     */
+    public $timestamps = false;
+
+    /**
      * The table associated with the model.
      *
      * @var string
@@ -45,8 +52,8 @@ class Category extends Model
     /**
      * Get the discounts for the category.
      */
-    public function discounts()
+/*     public function discounts()
     {
         return $this->morphMany(Discount::class, 'discountable');
-    }
+    } */
 }
