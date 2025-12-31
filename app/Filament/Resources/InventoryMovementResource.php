@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use App\Enums\TypeMovement;
 
 class InventoryMovementResource extends Resource
 {
@@ -34,9 +35,10 @@ class InventoryMovementResource extends Resource
                     ->relationship('user', 'name')
                     ->label('Usuario')
                     ->disabled(),
-                Forms\Components\TextInput::make('type')
+                Forms\Components\Select::make('type')
                     ->label('Tipo')
-                    ->readOnly(),
+                    ->options(TypeMovement::class)
+                    ->disabled(),
                 Forms\Components\TextInput::make('reason')
                     ->label('Motivo')
                     ->readOnly(),
@@ -51,12 +53,6 @@ class InventoryMovementResource extends Resource
                 Forms\Components\TextInput::make('new_stock')
                     ->label('Stock Nuevo')
                     ->numeric()
-                    ->readOnly(),
-                Forms\Components\TextInput::make('reference_type')
-                    ->label('Tipo Referencia')
-                    ->readOnly(),
-                Forms\Components\TextInput::make('reference_id')
-                    ->label('ID Referencia')
                     ->readOnly(),
                 Forms\Components\Textarea::make('notes')
                     ->label('Notas')
@@ -79,15 +75,7 @@ class InventoryMovementResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('type')
                     ->label('Tipo')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'input' => 'success',
-                        'output' => 'danger',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'input' => 'Entrada',
-                        'output' => 'Salida',
-                    }),
+                    ->badge(),
                 Tables\Columns\TextColumn::make('quantity')
                     ->label('Cant.')
                     ->numeric()
@@ -117,10 +105,7 @@ class InventoryMovementResource extends Resource
                     ->preload(),
                 Tables\Filters\SelectFilter::make('type')
                     ->label('Tipo')
-                    ->options([
-                        'input' => 'Entrada',
-                        'output' => 'Salida',
-                    ]),
+                    ->options(TypeMovement::class),
                 Tables\Filters\SelectFilter::make('reason')
                     ->label('Motivo')
                     ->options([

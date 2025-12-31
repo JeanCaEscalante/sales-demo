@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Enums\TypeMovement;
 
 class InventoryMovement extends Model
 {
@@ -22,6 +23,15 @@ class InventoryMovement extends Model
         'referenceable_id',
         'referenceable_type',
         'notes',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'type' => TypeMovement::class,
     ];
 
     public function product(): BelongsTo
