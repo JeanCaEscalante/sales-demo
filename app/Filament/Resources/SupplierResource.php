@@ -54,12 +54,6 @@ class SupplierResource extends Resource
                         Forms\Components\Section::make('Información del Proveedor')
                             ->icon('heroicon-o-building-storefront')
                             ->schema([
-                                Forms\Components\TextInput::make('name')
-                                    ->label('Nombre / Razón Social')
-                                    ->placeholder('Ej: Distribuidora Nacional S.A.')
-                                    ->required()
-                                    ->maxLength(255)
-                                    ->columnSpanFull(),
                                 Forms\Components\Select::make('type_document')
                                     ->label('Tipo de documento')
                                     ->options(TypeDocument::class)
@@ -76,6 +70,12 @@ class SupplierResource extends Resource
                                     })
                                     ->required()
                                     ->unique(ignoreRecord: true),
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Nombre / Razón Social')
+                                    ->placeholder('Ej: Distribuidora Nacional S.A.')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->columnSpanFull(),
                                 Forms\Components\Textarea::make('address')
                                     ->label('Dirección')
                                     ->placeholder('Calle, número, ciudad...')
@@ -106,17 +106,12 @@ class SupplierResource extends Resource
                                                 'whatsapp' => '+57 300 123 4567',
                                                 default => ''
                                             })
-                                            ->required()
-                                            ->columnSpan(2),
-                                        Forms\Components\Select::make('label')
-                                            ->label('Etiqueta')
-                                            ->options(TypeLabel::class)
-                                            ->native(false),
+                                            ->required(),
                                         Forms\Components\Toggle::make('is_primary')
                                             ->label('Principal')
                                             ->inline(),
                                     ])
-                                    ->columns(5)
+                                    ->columns(2)
                                     ->reorderable()
                                     ->collapsible()
                                     ->cloneable()
@@ -229,34 +224,6 @@ class SupplierResource extends Resource
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make(),
                     Tables\Actions\EditAction::make(),
-
-                    Tables\Actions\Action::make('call')
-                        ->label('Llamar')
-                        ->icon('heroicon-o-phone')
-                        ->color('success')
-                        ->url(fn (Supplier $record): ?string => ($phone = $record->contacts()
-                            ->whereIn('type_contact', ['phone', 'mobile'])
-                            ->first())
-                            ? "tel:{$phone->contact}"
-                            : null
-                        )
-                        ->openUrlInNewTab()
-                        ->visible(fn (Supplier $record) => $record->contacts()->whereIn('type_contact', ['phone', 'mobile'])->exists()
-                        ),
-                    Tables\Actions\Action::make('whatsapp')
-                        ->label('WhatsApp')
-                        ->icon('heroicon-o-chat-bubble-left-ellipsis')
-                        ->color('success')
-                        ->url(fn (Supplier $record): ?string => ($wa = $record->contacts()
-                            ->where('type_contact', 'whatsapp')
-                            ->first())
-                            ? 'https://wa.me/'.preg_replace('/[^0-9]/', '', $wa->contact)
-                            : null
-                        )
-                        ->openUrlInNewTab()
-                        ->visible(fn (Supplier $record) => $record->contacts()->where('type_contact', 'whatsapp')->exists()
-                        ),
-
                     Tables\Actions\DeleteAction::make()
                         ->requiresConfirmation(),
                 ]),
