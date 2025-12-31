@@ -12,6 +12,7 @@ use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use App\Services\InventoryService;
 
 class ProductResource extends Resource
 {
@@ -53,12 +54,6 @@ class ProductResource extends Resource
                                     ->placeholder('AUTO-001')
                                     ->helperText('Dejar vacío para generar automáticamente')
                                     ->maxLength(50),
-                                Forms\Components\TextInput::make('name')
-                                    ->label('Nombre del producto')
-                                    ->placeholder('Ej: Laptop Dell Inspiron 15')
-                                    ->required()
-                                    ->maxLength(255)
-                                    ->columnSpan(2),
                                 Forms\Components\Select::make('category_id')
                                     ->relationship('category', 'category_name')
                                     ->label('Categoría')
@@ -75,6 +70,12 @@ class ProductResource extends Resource
                                     ->label('Unidad de medida')
                                     ->preload()
                                     ->searchable(),
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Nombre del producto')
+                                    ->placeholder('Ej: Laptop Dell Inspiron 15')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->columnSpan(3),
                                 Forms\Components\Textarea::make('description')
                                     ->label('Descripción')
                                     ->placeholder('Descripción detallada del producto...')
@@ -122,7 +123,7 @@ class ProductResource extends Resource
                 // Sidebar (1/3)
                 Forms\Components\Group::make()
                     ->schema([
-                        Forms\Components\Section::make('Imagen')
+                        /* Forms\Components\Section::make('Imagen')
                             ->schema([
                                 Forms\Components\FileUpload::make('image')
                                     ->label('')
@@ -131,7 +132,7 @@ class ProductResource extends Resource
                                     ->directory('products')
                                     ->columnSpanFull(),
                             ])
-                            ->collapsible(),
+                            ->collapsible(), */
 
                         Forms\Components\Section::make('Inventario')
                             ->icon('heroicon-o-archive-box')
@@ -228,11 +229,6 @@ class ProductResource extends Resource
                     ->sortable()
                     ->weight('bold')
                     ->color('success'),
-                Tables\Columns\TextColumn::make('profit')
-                    ->label('Margen')
-                    ->suffix('%')
-                    ->sortable()
-                    ->toggleable(),
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Activo')
                     ->boolean()
@@ -262,7 +258,6 @@ class ProductResource extends Resource
             ->filtersFormColumns(2)
             ->actions([
                 Tables\Actions\ActionGroup::make([
-                    Tables\Actions\ViewAction::make(),
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\Action::make('adjustStock')
                         ->label('Ajustar stock')
@@ -274,7 +269,6 @@ class ProductResource extends Resource
                                 ->options([
                                     'add' => 'Agregar stock',
                                     'subtract' => 'Restar stock',
-                                    'set' => 'Establecer cantidad',
                                 ])
                                 ->required(),
                             Forms\Components\TextInput::make('quantity')
@@ -288,6 +282,12 @@ class ProductResource extends Resource
                         ])
                         ->action(function (Product $record, array $data) {
                             // Lógica de ajuste de stock
+                            $inventoryService = new InventoryService($record);
+                            if ($data['type'] === 'add') {
+                                $inventoryService->addToStock($data['quantity'], 'Ajuste', $record, $data['reason']);
+                            } else {
+                                $inventoryService->removeFromStock($data['quantity'], 'Ajuste', $record, $data['reason']);
+                            }
                         }),
                     Tables\Actions\ReplicateAction::make()
                         ->excludeAttributes(['code', 'stock']),

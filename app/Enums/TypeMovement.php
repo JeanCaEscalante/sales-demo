@@ -9,12 +9,14 @@ enum TypeMovement: string implements HasLabel, HasColor
 {
     case INPUT = 'input';
     case OUTPUT = 'output';
+    case ADJUSTMENT = 'adjustment';
 
     public function getLabel(): ?string
     {
         return match ($this) {
             self::INPUT => 'Entrada',
             self::OUTPUT => 'Salida',
+            self::ADJUSTMENT => 'Ajuste',
         };
     }
 
@@ -23,6 +25,7 @@ enum TypeMovement: string implements HasLabel, HasColor
         return match ($this) {
             self::INPUT => 'success',
             self::OUTPUT => 'danger',
+            self::ADJUSTMENT => 'warning',
         };
     }
 }

@@ -38,6 +38,7 @@ class Product extends Model
         'description',
         'is_tax_exempt',      // antes: is_exempt
         'tax_rate_id',          // antes: tax_rate_id
+        'is_active',
     ];
 
     /**
@@ -47,6 +48,7 @@ class Product extends Model
      */
     protected $casts = [
         'is_tax_exempt' => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     /**

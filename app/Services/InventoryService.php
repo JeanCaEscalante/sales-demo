@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\InventoryMovement;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
+use App\Enums\TypeMovement;
 
 class InventoryService
 {
@@ -31,7 +32,7 @@ class InventoryService
         $this->product->increase($quantity);
         $newStock = $this->product->stock;
 
-        $this->recordMovement('input', $quantity, $previousStock, $newStock, $reason, $reference, $notes);
+        $this->recordMovement(TypeMovement::INPUT, $quantity, $previousStock, $newStock, $reason, $reference, $notes);
     }
 
     public function removeFromStock(float $quantity, string $reason = 'Venta', $reference = null, ?string $notes = null)
@@ -40,10 +41,10 @@ class InventoryService
         $this->product->decrease($quantity);
         $newStock = $this->product->stock;
 
-        $this->recordMovement('output', $quantity, $previousStock, $newStock, $reason, $reference, $notes);
+        $this->recordMovement(TypeMovement::OUTPUT, $quantity, $previousStock, $newStock, $reason, $reference, $notes);
     }
 
-    private function recordMovement(string $type, float $quantity, float $previousStock, float $newStock, string $reason, $reference = null, ?string $notes = null)
+    private function recordMovement(TypeMovement $type, float $quantity, float $previousStock, float $newStock, string $reason, $reference = null, ?string $notes = null)
     {
         InventoryMovement::create([
             'product_id' => $this->product->getKey(), // Usar getKey() del producto también
