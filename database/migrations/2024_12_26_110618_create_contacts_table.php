@@ -15,9 +15,8 @@ return new class extends Migration
             $table->bigIncrements('contact_id');
             $table->unsignedBigInteger('contactable_id');
             $table->string('contactable_type');
-            $table->enum('type_contact', ['email', 'phone']);
+            $table->string('type_contact');
             $table->string('contact');
-            $table->string('label')->nullable(); //'Etiqueta para identificar el contacto (ej: Oficina, Casa, Principal)'
             $table->boolean('is_primary')->default(false); //'Indica si es el contacto principal
             $table->timestamps();
 

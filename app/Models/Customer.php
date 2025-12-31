@@ -40,6 +40,15 @@ class Customer extends Model
     ];
 
     /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'type_document' => \App\Enums\TypeDocument::class,
+    ];
+
+    /**
      * Get the contacts for the customer.
      */
     public function contacts(): MorphMany

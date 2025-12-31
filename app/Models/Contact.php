@@ -35,7 +35,6 @@ class Contact extends Model
         'contactable_type',
         'type_contact',
         'contact',
-        'label',
         'is_primary',
     ];
 

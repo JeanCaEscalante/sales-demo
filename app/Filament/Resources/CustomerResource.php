@@ -60,12 +60,6 @@ class CustomerResource extends Resource
                         Forms\Components\Section::make('Información del Cliente')
                             ->icon('heroicon-o-user')
                             ->schema([
-                                Forms\Components\TextInput::make('name')
-                                    ->label('Nombre completo / Razón social')
-                                    ->placeholder('Ej: Juan Pérez o Empresa S.A.')
-                                    ->required()
-                                    ->maxLength(255)
-                                    ->columnSpanFull(),
                                 Forms\Components\Select::make('type_document')
                                     ->label('Tipo de documento')
                                     ->options(TypeDocument::class)
@@ -75,13 +69,18 @@ class CustomerResource extends Resource
                                 Forms\Components\TextInput::make('document')
                                     ->label('Número de documento')
                                     ->placeholder(fn (Forms\Get $get) => match ($get('type_document')?->value ?? $get('type_document')) {
-                                        'nit' => '900.123.456-7',
-                                        'cedula' => '1.234.567.890',
-                                        'pasaporte' => 'AB1234567',
+                                        'J' => '900.123.456-7',
+                                        'N' => '1.234.567.890',
                                         default => 'Ingrese el documento'
                                     })
                                     ->required()
                                     ->unique(ignoreRecord: true),
+                                Forms\Components\TextInput::make('name')
+                                    ->label('Nombre completo / Razón social')
+                                    ->placeholder('Ej: Juan Pérez o Empresa S.A.')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->columnSpanFull(),
                                 Forms\Components\Textarea::make('address')
                                     ->label('Dirección')
                                     ->placeholder('Calle, número, barrio, ciudad...')
@@ -112,20 +111,13 @@ class CustomerResource extends Resource
                                                 'whatsapp' => '+57 300 123 4567',
                                                 default => ''
                                             })
-                                            ->required()
-                                            ->columnSpan(2),
-                                        Forms\Components\TextInput::make('label')
-                                            ->label('Etiqueta')
-                                            ->placeholder('Ej: Casa, Oficina')
-                                            ->maxLength(50),
+                                            ->required(),
                                         Forms\Components\Toggle::make('is_primary')
-                                            ->label('Principal')
-                                            ->inline(),
+                                            ->label('¿Contacto principal?')
+                                            ->inline(false),
                                     ])
-                                    ->columns(5)
+                                    ->columns(2)
                                     ->reorderable()
-                                    ->collapsible()
-                                    ->cloneable()
                                     ->itemLabel(fn (array $state): ?string => $state['contact'] ?? 'Nuevo contacto'
                                     )
                                     ->defaultItems(1)
@@ -166,7 +158,7 @@ class CustomerResource extends Resource
                                     })
                                     ->hidden(fn (?Customer $record) => $record === null),
                             ]),
-
+ 
                         Forms\Components\Section::make('Resumen')
                             ->icon('heroicon-o-chart-bar')
                             ->schema([
@@ -288,46 +280,6 @@ class CustomerResource extends Resource
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make(),
                     Tables\Actions\EditAction::make(),
-
-                    Tables\Actions\Action::make('call')
-                        ->label('Llamar')
-                        ->icon('heroicon-o-phone')
-                        ->color('success')
-                        ->url(fn (Customer $record): ?string => ($phone = $record->contacts()
-                            ->whereIn('type_contact', ['phone', 'mobile'])
-                            ->first())
-                            ? "tel:{$phone->contact}"
-                            : null
-                        )
-                        ->openUrlInNewTab()
-                        ->visible(fn (Customer $record) => $record->contacts()->whereIn('type_contact', ['phone', 'mobile'])->exists()
-                        ),
-                    Tables\Actions\Action::make('whatsapp')
-                        ->label('WhatsApp')
-                        ->icon('heroicon-o-chat-bubble-left-ellipsis')
-                        ->color('success')
-                        ->url(fn (Customer $record): ?string => ($wa = $record->contacts()
-                            ->where('type_contact', 'whatsapp')
-                            ->first())
-                            ? 'https://wa.me/'.preg_replace('/[^0-9]/', '', $wa->contact)
-                            : null
-                        )
-                        ->openUrlInNewTab()
-                        ->visible(fn (Customer $record) => $record->contacts()->where('type_contact', 'whatsapp')->exists()
-                        ),
-                    Tables\Actions\Action::make('email')
-                        ->label('Enviar email')
-                        ->icon('heroicon-o-envelope')
-                        ->color('info')
-                        ->url(fn (Customer $record): ?string => ($email = $record->contacts()
-                            ->where('type_contact', 'email')
-                            ->first())
-                            ? "mailto:{$email->contact}"
-                            : null
-                        )
-                        ->visible(fn (Customer $record) => $record->contacts()->where('type_contact', 'email')->exists()
-                        ),
-
                     Tables\Actions\Action::make('newSale')
                         ->label('Nueva venta')
                         ->icon('heroicon-o-shopping-cart')
