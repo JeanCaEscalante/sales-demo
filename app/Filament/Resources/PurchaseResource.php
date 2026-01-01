@@ -192,7 +192,7 @@ class PurchaseResource extends Resource
                                                         }
                                                         self::updateCalculations($set, $get);
                                                     })->columnSpan(2),
-                                                
+
                                                 //solo visible en crear
                                                 Forms\Components\Select::make('tax_rate_id')
                                                     ->label('Tipo de Impuesto')
@@ -286,7 +286,7 @@ class PurchaseResource extends Resource
                                                     ->readOnly()
                                                     ->dehydrated()
                                                     ->helperText('PVP con IVA')
-                                                    ->extraAttributes(['class' => 'font-bold text-lg'])
+                                                    ->extraAttributes(['class' => 'font-bold text-lg']),
                                             ]),
                                     ])
                                     ->compact()
@@ -298,7 +298,7 @@ class PurchaseResource extends Resource
                                 if ($data['tax_exempt'] ?? false) {
                                     $data['tax_rate_id'] = null;
                                     $data['tax_rate'] = null;
-                                    $data['tax_name'] = null;   
+                                    $data['tax_name'] = null;
                                     $data['tax_amount'] = 0;
                                 } elseif (! empty($data['tax_rate_id'])) {
                                     $tax = \App\Models\TaxRate::find($data['tax_rate_id']);

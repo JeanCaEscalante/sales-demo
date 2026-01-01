@@ -6,7 +6,6 @@ use App\Filament\Resources\PurchaseResource;
 use App\Models\Product;
 use App\Services\InventoryService;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Support\Facades\Auth;
 
 class CreatePurchase extends CreateRecord
 {

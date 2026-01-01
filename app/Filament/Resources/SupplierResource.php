@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Enums\TypeContact;
 use App\Enums\TypeDocument;
-use App\Enums\TypeLabel;
 use App\Filament\Resources\SupplierResource\Pages;
 use App\Filament\Resources\SupplierResource\RelationManagers;
 use App\Models\Supplier;

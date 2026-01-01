@@ -38,7 +38,6 @@ class Sale extends Model
         'document_date',
         'total_base',
         'total_taxes',
-        'total_discounts',
         'total_amount',
     ];
 

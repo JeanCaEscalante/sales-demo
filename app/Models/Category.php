@@ -52,8 +52,8 @@ class Category extends Model
     /**
      * Get the discounts for the category.
      */
-/*     public function discounts()
-    {
-        return $this->morphMany(Discount::class, 'discountable');
-    } */
+    /*     public function discounts()
+        {
+            return $this->morphMany(Discount::class, 'discountable');
+        } */
 }

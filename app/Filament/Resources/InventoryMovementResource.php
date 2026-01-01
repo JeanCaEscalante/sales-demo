@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\TypeMovement;
 use App\Filament\Resources\InventoryMovementResource\Pages;
 use App\Models\InventoryMovement;
 use Filament\Forms;
@@ -9,7 +10,6 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use App\Enums\TypeMovement;
 
 class InventoryMovementResource extends Resource
 {

@@ -158,7 +158,7 @@ class CustomerResource extends Resource
                                     })
                                     ->hidden(fn (?Customer $record) => $record === null),
                             ]),
- 
+
                         Forms\Components\Section::make('Resumen')
                             ->icon('heroicon-o-chart-bar')
                             ->schema([

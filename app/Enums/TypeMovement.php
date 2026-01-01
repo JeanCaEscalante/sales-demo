@@ -5,7 +5,7 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum TypeMovement: string implements HasLabel, HasColor
+enum TypeMovement: string implements HasColor, HasLabel
 {
     case INPUT = 'input';
     case OUTPUT = 'output';
