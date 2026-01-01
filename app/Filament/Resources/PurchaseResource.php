@@ -191,9 +191,10 @@ class PurchaseResource extends Resource
                                                             $set('tax_id', null);
                                                         }
                                                         self::updateCalculations($set, $get);
-                                                    }),
-
-                                                Forms\Components\Select::make('tax_id')
+                                                    })->columnSpan(2),
+                                                
+                                                //solo visible en crear
+                                                Forms\Components\Select::make('tax_rate_id')
                                                     ->label('Tipo de Impuesto')
                                                     ->relationship('tax', 'name')
                                                     ->searchable()
@@ -201,7 +202,15 @@ class PurchaseResource extends Resource
                                                     ->placeholder('Seleccione un impuesto')
                                                     ->hidden(fn (Forms\Get $get) => $get('tax_exempt'))
                                                     ->live()
-                                                    ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get) => self::updateCalculations($set, $get)),
+                                                    ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get) => self::updateCalculations($set, $get))
+                                                    ->visibleOn('create'),
+
+                                                //solo visible en editar
+                                                Forms\Components\TextInput::make('tax_name')
+                                                    ->label('Tipo de Impuesto')
+                                                    ->disabled()
+                                                    ->hidden(fn (Forms\Get $get) => $get('tax_exempt'))
+                                                    ->visibleOn('edit'),
 
                                                 Forms\Components\TextInput::make('tax_amount')
                                                     ->label('Impuesto')
@@ -214,6 +223,7 @@ class PurchaseResource extends Resource
 
                                             ]),
                                     ])
+                                    ->columns(4)
                                     ->collapsible()
                                     ->collapsed()
                                     ->compact()
@@ -276,36 +286,30 @@ class PurchaseResource extends Resource
                                                     ->readOnly()
                                                     ->dehydrated()
                                                     ->helperText('PVP con IVA')
-                                                    ->extraAttributes(function (Forms\Get $get) {
-                                                        $unitPrice = (float) ($get('unit_price') ?? 0);
-                                                        $discount = (float) ($get('discount') ?? 0);
-                                                        $salePrice = (float) ($get('sale_price') ?? 0);
-
-                                                        $unitPriceAfterDiscount = $unitPrice * (1 - ($discount / 100));
-
-                                                        if ($unitPriceAfterDiscount > 0 && $salePrice > 0) {
-                                                            $marginPercent = (($salePrice - $unitPriceAfterDiscount) / $unitPriceAfterDiscount) * 100;
-
-                                                            if ($marginPercent < 0) {
-                                                                return [
-                                                                    'class' => 'font-bold text-lg',
-                                                                    'style' => 'background-color: #fef2f2; border-color: #ef4444; color: #dc2626;',
-                                                                ];
-                                                            } elseif ($marginPercent >= 20) {
-                                                                return [
-                                                                    'class' => 'font-bold text-lg',
-                                                                    'style' => 'background-color: #f0fdf4; border-color: #22c55e; color: #16a34a;',
-                                                                ];
-                                                            }
-                                                        }
-
-                                                        return ['class' => 'font-bold text-lg'];
-                                                    }),
+                                                    ->extraAttributes(['class' => 'font-bold text-lg'])
                                             ]),
                                     ])
                                     ->compact()
-                                    ->columnSpanFull(),
+                                    ->columnSpanFull()
+                                    ->visibleOn('create'),
                             ])
+                            ->mutateRelationshipDataBeforeSaveUsing(function (array $data): array {
+
+                                if ($data['tax_exempt'] ?? false) {
+                                    $data['tax_rate_id'] = null;
+                                    $data['tax_rate'] = null;
+                                    $data['tax_name'] = null;   
+                                    $data['tax_amount'] = 0;
+                                } elseif (! empty($data['tax_rate_id'])) {
+                                    $tax = \App\Models\TaxRate::find($data['tax_rate_id']);
+                                    if ($tax) {
+                                        $data['tax_rate'] = $tax->rate;
+                                        $data['tax_name'] = $tax->name;
+                                    }
+                                }
+
+                                return $data;
+                            })
                             ->columnSpanFull()
                             ->defaultItems(1)
                             ->reorderableWithButtons()
@@ -381,10 +385,7 @@ class PurchaseResource extends Resource
                                         ->prefix('$')
                                         ->default(0)
                                         ->readOnly()
-                                        ->extraAttributes([
-                                            'class' => 'text-2xl font-bold text-primary-600',
-                                            'style' => 'background-color: #f0fdf4; border-color: #22c55e;',
-                                        ]),
+                                        ->extraAttributes(['class' => 'text-2xl font-bold']),
                                 ])->columnSpan(1),
                             ]),
                     ])
@@ -565,7 +566,8 @@ class PurchaseResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('total_amount')
                     ->label('Total')
-                    ->money('USD')
+                    ->numeric()
+                    ->prefix('$')
                     ->sortable(),
             ])
             ->filters([

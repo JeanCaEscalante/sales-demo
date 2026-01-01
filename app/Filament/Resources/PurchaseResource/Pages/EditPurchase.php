@@ -16,25 +16,4 @@ class EditPurchase extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
-
-    protected function mutateFormDataBeforeSave(array $data): array
-    {
-        if (isset($data['items']) && is_array($data['items'])) {
-            foreach ($data['items'] as &$item) {
-                if ($item['tax_exempt'] ?? false) {
-                    $item['tax_rate_id'] = null;
-                    $item['tax_rate'] = null;
-                    $item['tax_name'] = null;
-                } elseif (! empty($item['tax_rate_id'])) {
-                    $tax = \App\Models\TaxRate::find($item['tax_rate_id']);
-                    if ($tax) {
-                        $item['tax_rate'] = $tax->rate;
-                        $item['tax_name'] = $tax->name;
-                    }
-                }
-            }
-        }
-
-        return $data;
-    }
 }

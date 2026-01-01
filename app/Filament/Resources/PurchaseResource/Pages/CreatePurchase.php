@@ -12,30 +12,6 @@ class CreatePurchase extends CreateRecord
 {
     protected static string $resource = PurchaseResource::class;
 
-    protected function mutateFormDataBeforeCreate(array $data): array
-    {
-        $data['user_id'] = Auth::id();
-
-        // Procesar items para snapshot de impuestos
-        if (isset($data['items']) && is_array($data['items'])) {
-            foreach ($data['items'] as &$item) {
-                if ($item['tax_exempt'] ?? false) {
-                    $item['tax_id'] = null;
-                    $item['tax_rate'] = 0;
-                    $item['tax_name'] = 'Exento';
-                } elseif (! empty($item['tax_id'])) {
-                    $tax = \App\Models\TaxRate::find($item['tax_id']);
-                    if ($tax) {
-                        $item['tax_rate'] = $tax->rate;
-                        $item['tax_name'] = $tax->name;
-                    }
-                }
-            }
-        }
-
-        return $data;
-    }
-
     protected function afterCreate(): void
     {
         $purchase = $this->getRecord();
