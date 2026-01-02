@@ -13,19 +13,43 @@ return new class extends Migration
     {
         Schema::create('sale_items', function (Blueprint $table) {
             $table->bigIncrements('sale_item_id');
+
+            // Relaciones
             $table->unsignedBigInteger('sale_id');
+            $table->foreign('sale_id')
+                ->references('sale_id')
+                ->on('sales')
+                ->onDelete('cascade');
+
             $table->unsignedBigInteger('product_id');
-            $table->bigInteger('quantity');
-            $table->double('unit_price');
-            $table->double('discount_amount')->default(0);
-            $table->double('subtotal')->nullable();
+            $table->foreign('product_id')
+                ->references('product_id')
+                ->on('products')
+                ->onDelete('cascade');
+
+            // Datos de venta
+            $table->decimal('quantity', 10, 2)->default(1);
+            $table->decimal('unit_price', 12, 4)->default(0)->comment('4 decimales para precisión en redondeos');
+            $table->decimal('discount', 5, 2)->default(0)->comment('Porcentaje 0-100');
+            $table->decimal('subtotal', 12, 2)->default(0);
+
+            // Impuestos (snapshot al momento de venta)
+            $table->boolean('tax_exempt')->default(false);
+
             $table->unsignedBigInteger('tax_rate_id')->nullable();
-            $table->double('tax_amount')->nullable();
+            $table->foreign('tax_rate_id')
+                ->references('tax_rate_id')
+                ->on('tax_rates')
+                ->nullOnDelete();
+
+            $table->decimal('tax_rate', 5, 2)->nullable();
+            $table->string('tax_name', 100)->nullable();
+            $table->decimal('tax_amount', 12, 2)->default(0);
+
             $table->timestamps();
 
-            $table->foreign('sale_id')->references('sale_id')->on('sales')->onDelete('cascade');
-            $table->foreign('product_id')->references('product_id')->on('products')->onDelete('cascade');
-            $table->foreign('tax_rate_id')->references('tax_rate_id')->on('tax_rates')->onDelete('set null');
+            // Índice para consultas frecuentes
+            $table->index(['sale_id', 'product_id']);
         });
     }
 

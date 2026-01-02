@@ -31,10 +31,28 @@ class SaleItem extends Model
         'product_id',
         'quantity',
         'unit_price',
-        'discount_amount',
+        'discount',
         'subtotal',
+        'tax_exempt',
         'tax_rate_id',
+        'tax_rate',
+        'tax_name',
         'tax_amount',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'quantity' => 'decimal:2',
+        'unit_price' => 'decimal:4',
+        'discount' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'tax_exempt' => 'boolean',
+        'tax_rate' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
     ];
 
     /**
@@ -42,7 +60,7 @@ class SaleItem extends Model
      */
     public function sale(): BelongsTo
     {
-        return $this->belongsTo(Sale::class, 'sale_id');
+        return $this->belongsTo(Sale::class, 'sale_id', 'sale_id');
     }
 
     /**
@@ -50,7 +68,7 @@ class SaleItem extends Model
      */
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class, 'product_id');
+        return $this->belongsTo(Product::class, 'product_id', 'product_id');
     }
 
     /**
@@ -58,6 +76,6 @@ class SaleItem extends Model
      */
     public function taxRate(): BelongsTo
     {
-        return $this->belongsTo(TaxRate::class, 'tax_rate_id');
+        return $this->belongsTo(TaxRate::class, 'tax_rate_id', 'tax_rate_id');
     }
 }

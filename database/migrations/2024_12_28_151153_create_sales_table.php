@@ -12,21 +12,60 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sales', function (Blueprint $table) {
-            $table->bigIncrements('sale_id')->primary();
+            $table->bigIncrements('sale_id');
+
+            // Relaciones
             $table->unsignedBigInteger('customer_id');
+            $table->foreign('customer_id')
+                ->references('customer_id')
+                ->on('customers')
+                ->onDelete('cascade');
+
             $table->unsignedBigInteger('user_id');
-            $table->enum('document_type', ['bill', 'ticket']);
-            $table->string('document_series')->nullable();
-            $table->string('document_number')->nullable();
-            $table->dateTime('document_date')->nullable();
-            $table->double('total_base');
-            $table->double('total_taxes');
-            $table->double('total_discounts');
-            $table->double('total_amount');
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users')
+                ->onDelete('cascade');
+
+            // Información del comprobante
+            $table->string('document_type', 50);
+            $table->string('series', 10)->nullable();
+            $table->string('number', 50);
+            $table->date('sale_date');
+
+            // Moneda
+            $table->string('currency', 10)->nullable();
+            $table->decimal('exchange_rate', 10, 4)->nullable()->comment('Tipo de cambio al momento de la venta');
+
+            // Resumen de venta (campos completos para reportes fiscales)
+            $table->decimal('subtotal', 12, 2)->default(0);
+            $table->decimal('taxable_base', 12, 2)->default(0)->comment('Subtotal de productos gravados');
+            $table->decimal('total_exempt', 12, 2)->default(0)->comment('Subtotal de productos exentos');
+            $table->decimal('total_tax', 12, 2)->default(0);
+            $table->decimal('total_discounts', 12, 2)->default(0);
+            $table->decimal('total_amount', 12, 2)->default(0);
+
+            //Control de pagos
+            $table->string('payment_status')
+                ->default('paid');
+
+            $table->decimal('paid_amount', 12, 2)
+                ->default(0)
+                ->unsigned()
+                ->comment('Total pagado (suma de abonos)');
+
+            $table->decimal('balance', 12, 2)
+                ->default(0)
+                ->unsigned()
+                ->comment('Saldo pendiente (total_amount - paid_amount)');
+
             $table->timestamps();
 
-            $table->foreign('customer_id')->references('customer_id')->on('customers')->onDelete('cascade');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            // Índice para consultas frecuentes
+            $table->index(['customer_id', 'sale_date']);
+
+            // Índice único para evitar duplicados en la numeración
+            $table->unique(['series', 'number'], 'sales_series_number_unique');
         });
     }
 
