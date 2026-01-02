@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Enums\TypeMovement;
 use App\Models\InventoryMovement;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
-use App\Enums\TypeMovement;
 
 class InventoryService
 {
