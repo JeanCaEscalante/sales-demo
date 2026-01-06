@@ -14,28 +14,35 @@ class SaleCalculationService
     {
         $quantity = (float) ($get('quantity') ?? 0);
         $unitPrice = (float) ($get('unit_price') ?? 0);
-        $discountAmount = (float) ($get('discount_amount') ?? 0);
+        $discount = (float) ($get('discount') ?? 0); // Ahora es porcentaje
 
-        // Calcular base imponible (cantidad × precio unitario) - descuento
-        $taxBase = ($quantity * $unitPrice) - $discountAmount;
+        // Calcular subtotal (cantidad × precio unitario) y aplicar descuento (porcentaje)
+        $subtotal = ($quantity * $unitPrice) * (1 - ($discount / 100));
+        $set('subtotal', number_format($subtotal, 2, '.', ''));
 
         // Obtener tasa de impuesto
         $taxRateId = $get('tax_rate_id');
         $taxRateValue = 0;
+        $isExempt = (bool) ($get('tax_exempt') ?? false);
 
-        if ($taxRateId) {
+        if (! $isExempt && $taxRateId) {
             $taxRate = \App\Models\TaxRate::find($taxRateId);
             if ($taxRate) {
                 $taxRateValue = (float) $taxRate->rate;
+                $set('tax_rate', $taxRateValue);
+                $set('tax_name', $taxRate->name);
             }
+        } else {
+            $set('tax_rate', 0);
+            $set('tax_amount', 0);
         }
 
-        $taxAmount = $taxBase * ($taxRateValue / 100);
-        $set('tax_amount', number_format($taxAmount, 2, '.', ''));
-
-        // Calcular monto neto total (subtotal en el modelo)
-        $total = $taxBase + $taxAmount;
-        $set('total', number_format($total, 2, '.', ''));
+        if (! $isExempt) {
+            $taxAmount = $subtotal * ($taxRateValue / 100);
+            $set('tax_amount', number_format($taxAmount, 2, '.', ''));
+        } else {
+            $set('tax_amount', '0.00');
+        }
     }
 
     /**
@@ -45,28 +52,34 @@ class SaleCalculationService
     {
         $items = $get('items') ?? [];
 
-        $totalBase = 0;
-        $totalTaxes = 0;
+        $subtotal = 0;
+        $taxableBase = 0;
+        $totalExempt = 0;
+        $totalTax = 0;
 
         foreach ($items as $item) {
-            $quantity = (float) ($item['quantity'] ?? 0);
-            $unitPrice = (float) ($item['unit_price'] ?? 0);
-            $discount = (float) ($item['discount_amount'] ?? 0);
+            $itemSubtotal = (float) ($item['subtotal'] ?? 0);
+            $subtotal += $itemSubtotal;
 
-            $itemBase = ($quantity * $unitPrice) - $discount;
-            $totalBase += $itemBase;
-            $totalTaxes += (float) ($item['tax_amount'] ?? 0);
+            if (isset($item['tax_exempt']) && $item['tax_exempt']) {
+                $totalExempt += $itemSubtotal;
+            } else {
+                $taxableBase += $itemSubtotal;
+                $totalTax += (float) ($item['tax_amount'] ?? 0);
+            }
         }
 
         // Obtener descuentos globales si existen
         $globalDiscounts = (float) ($get('total_discounts') ?? 0);
 
         // Calcular total
-        $totalAmount = $totalBase + $totalTaxes - $globalDiscounts;
+        $totalAmount = $subtotal + $totalTax - $globalDiscounts;
 
         // Establecer valores
-        $set('total_base', number_format($totalBase, 2, '.', ''));
-        $set('total_taxes', number_format($totalTaxes, 2, '.', ''));
+        $set('subtotal', number_format($subtotal, 2, '.', ''));
+        $set('taxable_base', number_format($taxableBase, 2, '.', ''));
+        $set('total_exempt', number_format($totalExempt, 2, '.', ''));
+        $set('total_tax', number_format($totalTax, 2, '.', ''));
         $set('total_amount', number_format($totalAmount, 2, '.', ''));
     }
 
@@ -149,10 +162,10 @@ class SaleCalculationService
             return;
         }
 
-        $totalBase = (float) ($get('total_base') ?? 0);
+        $subtotal = (float) ($get('subtotal') ?? 0);
 
         // Validar monto mínimo
-        if ($discount->min_purchase_amount && $totalBase < $discount->min_purchase_amount) {
+        if ($discount->min_purchase_amount && $subtotal < $discount->min_purchase_amount) {
             $set('total_discounts', '0.00');
             self::calculateDocumentTotals($get, $set);
 
@@ -162,13 +175,13 @@ class SaleCalculationService
         // Calcular descuento
         $discountAmount = 0;
         if ($discount->type === 'percentage') {
-            $discountAmount = $totalBase * ($discount->value / 100);
+            $discountAmount = $subtotal * ($discount->value / 100);
         } else {
             $discountAmount = $discount->value;
         }
 
-        // No puede exceder el total base
-        $discountAmount = min($discountAmount, $totalBase);
+        // No puede exceder el subtotal
+        $discountAmount = min($discountAmount, $subtotal);
 
         $set('total_discounts', number_format($discountAmount, 2, '.', ''));
         self::calculateDocumentTotals($get, $set);
@@ -191,14 +204,14 @@ class SaleCalculationService
 
         // Buscar el último número de la serie
         $lastSale = \App\Models\Sale::where('user_id', $userId)
-            ->where('document_series', $series)
-            ->orderBy('document_number', 'desc')
+            ->where('series', $series)
+            ->orderBy('number', 'desc')
             ->first();
 
         $nextNumber = 1;
-        if ($lastSale && $lastSale->document_number) {
+        if ($lastSale && $lastSale->number) {
             // Extraer el número de la serie (ej: FTA-20231225-5 -> 5)
-            $parts = explode('-', $lastSale->document_number);
+            $parts = explode('-', $lastSale->number);
             $lastNumber = (int) end($parts);
             $nextNumber = $lastNumber + 1;
         }
@@ -206,8 +219,8 @@ class SaleCalculationService
         $documentNumber = "{$prefix}-{$nextNumber}";
 
         return [
-            'document_series' => $series,
-            'document_number' => $documentNumber,
+            'series' => $series,
+            'number' => $documentNumber,
         ];
     }
 }
