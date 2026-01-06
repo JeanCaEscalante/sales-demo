@@ -39,7 +39,7 @@ class ExchangeRateResource extends Resource
                     ->required()
                     ->numeric()
                     ->minValue(0)
-                    ->step(0.000001)
+                    ->step(0.01)
                     ->helperText('Ejemplo: Si 1 USD = 4,000 COP, ingrese 4000'),
 
                 Forms\Components\DatePicker::make('effective_date')

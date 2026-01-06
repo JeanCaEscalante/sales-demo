@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Closure;
 
 class CurrencyResource extends Resource
 {
@@ -26,11 +27,10 @@ class CurrencyResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('code')
                     ->label('Código')
+                    ->formatStateUsing(fn ($state): string => strtoupper($state))
                     ->required()
                     ->maxLength(3)
-                    ->uppercase()
                     ->placeholder('USD, EUR, COP...'),
-
                 Forms\Components\TextInput::make('name')
                     ->label('Nombre')
                     ->required()
@@ -80,8 +80,8 @@ class CurrencyResource extends Resource
 
                 Tables\Columns\TextColumn::make('current_rate')
                     ->label('Tasa Actual')
-                    ->getStateUsing(fn (Currency $record) => $record->getCurrentRate())
-                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 4) : 'N/A'),
+                    ->getStateUsing(fn (Currency $record) => $record?->getCurrentRate())
+                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 2) : 'N/A'),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
