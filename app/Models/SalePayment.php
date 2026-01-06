@@ -3,15 +3,32 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SalePayment extends Model
 {
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'sale_payments';
+
+    /**
+     * The primary key associated with the table.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'sale_payment_id';
+
     protected $fillable = [
         'sale_id',
         'user_id',
+        'currency',
+        'exchange_rate',
         'amount',
         'payment_method',
-        'notes',
+        'reference',
         'payment_date',
     ];
 
@@ -22,11 +39,11 @@ class SalePayment extends Model
 
     public function sale(): BelongsTo
     {
-        return $this->belongsTo(Sale::class);
+        return $this->belongsTo(Sale::class, 'user_id');
     }
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

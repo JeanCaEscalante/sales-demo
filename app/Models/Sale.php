@@ -36,8 +36,6 @@ class Sale extends Model
         'series',
         'number',
         'sale_date',
-        'currency',
-        'exchange_rate',
         'subtotal',
         'taxable_base',
         'total_exempt',
@@ -55,8 +53,8 @@ class Sale extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'payment_status' => \App\Enums\TypePaymentStatus::class,
         'sale_date' => 'date',
-        'exchange_rate' => 'decimal:4',
         'subtotal' => 'decimal:2',
         'taxable_base' => 'decimal:2',
         'total_exempt' => 'decimal:2',
@@ -106,4 +104,27 @@ class Sale extends Model
     {
         return $query->where('user_id', Auth::id());
     }
+
+
+    public function updatePaymentStatus(): void
+    {
+        $this->paid_amount = $this->payments()->sum('amount');
+        $this->balance = $this->total_amount - $this->paid_amount;
+        
+        if ($this->balance <= 0) {
+            $this->payment_status = 'paid';
+        } elseif ($this->paid_amount > 0) {
+            $this->payment_status = 'partial';
+        } else {
+            $this->payment_status = 'pending';
+        }
+        
+        $this->save();
+    }
+
+    // Scope para ventas pendientes
+    public function scopePending($query)
+    {
+        return $query->whereIn('payment_status', ['pending', 'partial']);
+}
 }
