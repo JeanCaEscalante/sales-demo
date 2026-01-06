@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ExchangeRate extends Model
 {
-
     /**
      * The table associated with the model.
      *
@@ -31,7 +30,7 @@ class ExchangeRate extends Model
         'currency_id',
         'rate',
         'effective_date',
-        'created_by',
+        'user_id',
     ];
 
     protected $casts = [
@@ -46,6 +45,6 @@ class ExchangeRate extends Model
 
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

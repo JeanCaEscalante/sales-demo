@@ -41,7 +41,7 @@ class Currency extends Model
 
     public function exchangeRates(): HasMany
     {
-        return $this->hasMany(ExchangeRate::class);
+        return $this->hasMany(ExchangeRate::class, 'currency_id', 'currency_id');
     }
 
     public function getCurrentRate(): ?float
@@ -50,9 +50,16 @@ class Currency extends Model
             return 1.0;
         }
 
-        return $this->exchangeRates()
+        // Validar primero que exista algún registro en la relación exchangeRates
+        if (! $this->exchangeRates()->exists()) {
+            return null;
+        }
+
+        $rateRecord = $this->exchangeRates()
             ->where('effective_date', '<=', now())
             ->latest('effective_date')
-            ->value('rate');
+            ->first();
+
+        return $rateRecord ? (float) $rateRecord->rate : null;
     }
 }
