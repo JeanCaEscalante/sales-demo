@@ -17,6 +17,8 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id'); // quien registra el pago
             $table->decimal('amount', 10, 2);
             $table->string('payment_method'); // efectivo, transferencia, etc
+            $table->string('currency', 10)->nullable();
+            $table->decimal('exchange_rate', 10, 4)->nullable()->comment('Tasa de cambio del dia');
             $table->text('reference')->nullable();
             $table->date('payment_date');
             $table->timestamps();

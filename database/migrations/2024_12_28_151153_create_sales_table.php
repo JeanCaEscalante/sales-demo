@@ -29,13 +29,9 @@ return new class extends Migration
 
             // Información del comprobante
             $table->string('document_type', 50);
-            $table->string('series', 10)->nullable();
-            $table->string('number', 50);
+            $table->string('series')->nullable();
+            $table->string('number');
             $table->date('sale_date');
-
-            // Moneda
-            $table->string('currency', 10)->nullable();
-            $table->decimal('exchange_rate', 10, 4)->nullable()->comment('Tipo de cambio al momento de la venta');
 
             // Resumen de venta (campos completos para reportes fiscales)
             $table->decimal('subtotal', 12, 2)->default(0);
