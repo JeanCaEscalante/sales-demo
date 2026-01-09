@@ -8,79 +8,104 @@ use Filament\Forms\Set;
 class SaleCalculationService
 {
     /**
-     * Calcula todos los valores de una línea de artículo
+     * Calcula todos los valores de una línea de artículo de venta
+     * Basado en updateCalculations de PurchaseResource
      */
     public static function calculateLineItem(Get $get, Set $set, ?string $path = null): void
     {
-        $quantity = (float) ($get('quantity') ?? 0);
+        // ========================================
+        // 1. OBTENER VALORES BASE
+        // ========================================
+        $quantity = (float) ($get('quantity') ?? 1);
         $unitPrice = (float) ($get('unit_price') ?? 0);
-        $discount = (float) ($get('discount') ?? 0); // Ahora es porcentaje
-
-        // Calcular subtotal (cantidad × precio unitario) y aplicar descuento (porcentaje)
-        $subtotal = ($quantity * $unitPrice) * (1 - ($discount / 100));
-        $set('subtotal', number_format($subtotal, 2, '.', ''));
-
-        // Obtener tasa de impuesto
         $taxRateId = $get('tax_rate_id');
-        $taxRateValue = 0;
         $isExempt = (bool) ($get('tax_exempt') ?? false);
 
-        if (! $isExempt && $taxRateId) {
-            $taxRate = \App\Models\TaxRate::find($taxRateId);
-            if ($taxRate) {
-                $taxRateValue = (float) $taxRate->rate;
-                $set('tax_rate', $taxRateValue);
-                $set('tax_name', $taxRate->name);
-            }
-        } else {
-            $set('tax_rate', 0);
-            $set('tax_amount', 0);
+        // Validar cantidad mínima
+        if ($quantity <= 0) {
+            $quantity = 1;
         }
 
-        if (! $isExempt) {
-            $taxAmount = $subtotal * ($taxRateValue / 100);
-            $set('tax_amount', number_format($taxAmount, 2, '.', ''));
-        } else {
-            $set('tax_amount', '0.00');
+        // ========================================
+        // 2. CÁLCULO DE SUBTOTAL
+        // ========================================
+        $subtotal = $quantity * $unitPrice;
+        $set('subtotal', number_format($subtotal, 2, '.', ''));
+
+        // ========================================
+        // 3. CÁLCULOS DE IMPUESTOS
+        // ========================================
+        $taxRate = 0;
+        $taxName = null;
+        $taxAmount = 0;
+
+        if (! $isExempt && $taxRateId) {
+            $tax = \App\Models\TaxRate::find($taxRateId);
+            if ($tax) {
+                $taxRate = (float) $tax->rate;
+                $taxName = $tax->name;
+                $taxAmount = $subtotal * ($taxRate / 100);
+            }
         }
+
+        // Establecer valores de impuestos
+        $set('tax_rate', $taxRate);
+        $set('tax_name', $taxName);
+        $set('tax_amount', number_format($taxAmount, 2, '.', ''));
+
+        // ========================================
+        // 4. ACTUALIZAR TOTALES DEL FORMULARIO
+        // ========================================
+        self::calculateDocumentTotals($get, $set);
     }
 
     /**
      * Calcula los totales generales del documento de venta
+     * Basado en updateTotals de PurchaseResource
      */
     public static function calculateDocumentTotals(Get $get, Set $set): void
     {
-        $items = $get('items') ?? [];
+        $items = $get('items');
+        $isRemote = false;
 
-        $subtotal = 0;
-        $taxableBase = 0;
-        $totalExempt = 0;
-        $totalTax = 0;
-
-        foreach ($items as $item) {
-            $itemSubtotal = (float) ($item['subtotal'] ?? 0);
-            $subtotal += $itemSubtotal;
-
-            if (isset($item['tax_exempt']) && $item['tax_exempt']) {
-                $totalExempt += $itemSubtotal;
-            } else {
-                $taxableBase += $itemSubtotal;
-                $totalTax += (float) ($item['tax_amount'] ?? 0);
-            }
+        if ($items === null) {
+            $items = $get('../../items');
+            $isRemote = true;
         }
 
-        // Obtener descuentos globales si existen
-        $globalDiscounts = (float) ($get('total_discounts') ?? 0);
+        $items = collect($items ?? []);
 
-        // Calcular total
-        $totalAmount = $subtotal + $totalTax - $globalDiscounts;
+        $taxableSubtotal = 0;
+        $exemptSubtotal = 0;
+        $totalTax = 0;
+        $totalQuantity = 0;
 
-        // Establecer valores
-        $set('subtotal', number_format($subtotal, 2, '.', ''));
-        $set('taxable_base', number_format($taxableBase, 2, '.', ''));
-        $set('total_exempt', number_format($totalExempt, 2, '.', ''));
-        $set('total_tax', number_format($totalTax, 2, '.', ''));
-        $set('total_amount', number_format($totalAmount, 2, '.', ''));
+        foreach ($items as $item) {
+            $subtotal = (float) ($item['subtotal'] ?? 0);
+            $taxAmount = (float) ($item['tax_amount'] ?? 0);
+            $quantity = (float) ($item['quantity'] ?? 0);
+            $taxExempt = $item['tax_exempt'] ?? false;
+
+            if ($taxExempt) {
+                $exemptSubtotal += $subtotal;
+            } else {
+                $taxableSubtotal += $subtotal;
+                $totalTax += $taxAmount;
+            }
+
+            $totalQuantity += $quantity;
+        }
+
+        $subtotal = $taxableSubtotal + $exemptSubtotal;
+        $totalAmount = $subtotal + $totalTax;
+
+        $prefix = $isRemote ? '../../' : '';
+
+        $set($prefix.'subtotal', number_format($subtotal, 2, '.', ''));
+        $set($prefix.'taxable_base', number_format($taxableSubtotal, 2, '.', ''));
+        $set($prefix.'total_exempt', number_format($exemptSubtotal, 2, '.', ''));
+        $set($prefix.'total_tax', number_format($totalTax, 2, '.', ''));
+        $set($prefix.'total_amount', number_format($totalAmount, 2, '.', ''));
     }
 
     /**

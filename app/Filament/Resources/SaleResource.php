@@ -167,6 +167,8 @@ class SaleResource extends Resource
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(function (Get $get, Set $set) {
                                         SaleCalculationService::calculateLineItem($get, $set);
+                                        // Actualizar totales del documento después del cálculo de línea
+                                        SaleCalculationService::calculateDocumentTotals($get, $set);
                                     }),
 
                                 Forms\Components\TextInput::make('quantity')
@@ -195,6 +197,8 @@ class SaleResource extends Resource
                                         }
 
                                         SaleCalculationService::calculateLineItem($get, $set);
+                                        // Actualizar totales del documento después del cálculo de línea
+                                        SaleCalculationService::calculateDocumentTotals($get, $set);
                                     }),
 
                                 Forms\Components\TextInput::make('subtotal')

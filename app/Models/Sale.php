@@ -105,12 +105,11 @@ class Sale extends Model
         return $query->where('user_id', Auth::id());
     }
 
-
     public function updatePaymentStatus(): void
     {
         $this->paid_amount = $this->payments()->sum('amount');
         $this->balance = $this->total_amount - $this->paid_amount;
-        
+
         if ($this->balance <= 0) {
             $this->payment_status = 'paid';
         } elseif ($this->paid_amount > 0) {
@@ -118,7 +117,7 @@ class Sale extends Model
         } else {
             $this->payment_status = 'pending';
         }
-        
+
         $this->save();
     }
 
@@ -126,5 +125,5 @@ class Sale extends Model
     public function scopePending($query)
     {
         return $query->whereIn('payment_status', ['pending', 'partial']);
-}
+    }
 }
