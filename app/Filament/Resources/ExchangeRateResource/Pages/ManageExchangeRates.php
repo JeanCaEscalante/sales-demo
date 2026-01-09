@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ExchangeRateResource\Pages;
 use App\Filament\Resources\ExchangeRateResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ManageRecords;
+use Illuminate\Support\Facades\Auth;
 
 class ManageExchangeRates extends ManageRecords
 {
@@ -15,7 +16,7 @@ class ManageExchangeRates extends ManageRecords
         return [
             Actions\CreateAction::make()
                 ->mutateFormDataUsing(function (array $data): array {
-                    $data['user_id'] = auth()->id();
+                    $data['user_id'] = Auth::id();
 
                     return $data;
                 }),
