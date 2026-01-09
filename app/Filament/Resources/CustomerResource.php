@@ -10,7 +10,6 @@ use App\Models\Customer;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -129,35 +128,93 @@ class CustomerResource extends Resource
 
                 Forms\Components\Group::make()
                     ->schema([
-                        Forms\Components\Section::make('Crédito')
-                            ->icon('heroicon-o-banknotes')
-                            ->schema([
-                                Forms\Components\TextInput::make('credit_limit')
-                                    ->label('Límite de crédito')
-                                    ->numeric()
-                                    ->prefix('$')
-                                    ->default(0)
-                                    ->mask(RawJs::make('$money($input)'))
-                                    ->stripCharacters(',')
-                                    ->helperText('Monto máximo permitido a crédito'),
-                                Forms\Components\Placeholder::make('credit_used')
-                                    ->label('Crédito utilizado')
-                                    ->content(fn (?Customer $record): string => '$'.number_format($record?->sales()->where('status', 'pending')->sum('total_amount') ?? 0, 2)
-                                    )
-                                    ->hidden(fn (?Customer $record) => $record === null),
-                                Forms\Components\Placeholder::make('credit_available')
-                                    ->label('Disponible')
-                                    ->content(function (?Customer $record): string {
-                                        if (! $record) {
-                                            return '—';
-                                        }
-                                        $used = $record->sales()->where('status', 'pending')->sum('total_amount');
-                                        $available = ($record->credit_limit ?? 0) - $used;
+                        // Reemplazar la sección de Crédito en CustomerResource.php
 
-                                        return '$'.number_format(max(0, $available), 2);
-                                    })
-                                    ->hidden(fn (?Customer $record) => $record === null),
-                            ]),
+                        Forms\Components\Section::make('Estado de Cuenta')
+                            ->icon('heroicon-o-banknotes')
+                            ->description('Información de crédito y pagos del cliente')
+                            ->schema([
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        // Columna izquierda - Deudas
+                                        Forms\Components\Fieldset::make('Deuda Actual')
+                                            ->schema([
+                                                Forms\Components\Placeholder::make('pending_sales_count')
+                                                    ->label('Ventas pendientes')
+                                                    ->content(fn (?Customer $record): string => ($record?->sales()->whereIn('payment_status', ['pending', 'partial'])->count() ?? 0).' venta(s)'
+                                                    ),
+
+                                                Forms\Components\Placeholder::make('total_debt')
+                                                    ->label('Deuda total')
+                                                    ->content(fn (?Customer $record): string => '$'.number_format(
+                                                        $record?->sales()->whereIn('payment_status', ['pending', 'partial'])->sum('balance') ?? 0,
+                                                        2
+                                                    )
+                                                    )
+                                                    ->extraAttributes([
+                                                        'class' => 'text-lg font-bold text-danger-600 dark:text-danger-400',
+                                                    ]),
+                                            ]),
+
+                                        // Columna derecha - Pagos
+                                        Forms\Components\Fieldset::make('Historial de Pagos')
+                                            ->schema([
+                                                Forms\Components\Placeholder::make('total_paid')
+                                                    ->label('Total abonado')
+                                                    ->content(function (?Customer $record): string {
+                                                        if (! $record) {
+                                                            return '$0.00';
+                                                        }
+
+                                                        // Suma de todos los abonos realizados
+                                                        $totalPaid = \App\Models\SalePayment::whereHas('sale', function ($query) use ($record) {
+                                                            $query->where('customer_id', $record->customer_id);
+                                                        })->sum('amount');
+
+                                                        return '$'.number_format($totalPaid, 2);
+                                                    })
+                                                    ->extraAttributes([
+                                                        'class' => 'text-lg font-bold text-success-600 dark:text-success-400',
+                                                    ]),
+
+                                                Forms\Components\Placeholder::make('last_payment_date')
+                                                    ->label('Último pago')
+                                                    ->content(function (?Customer $record): string {
+                                                        if (! $record) {
+                                                            return '—';
+                                                        }
+
+                                                        $lastPayment = \App\Models\SalePayment::whereHas('sale', function ($query) use ($record) {
+                                                            $query->where('customer_id', $record->customer_id);
+                                                        })
+                                                            ->orderBy('payment_date', 'desc')
+                                                            ->first();
+
+                                                        if (! $lastPayment) {
+                                                            return 'Sin pagos registrados';
+                                                        }
+
+                                                        return $lastPayment->payment_date->format('d/m/Y');
+                                                    }),
+
+                                                Forms\Components\Placeholder::make('payment_count')
+                                                    ->label('Total de abonos')
+                                                    ->content(function (?Customer $record): string {
+                                                        if (! $record) {
+                                                            return '0';
+                                                        }
+
+                                                        $count = \App\Models\SalePayment::whereHas('sale', function ($query) use ($record) {
+                                                            $query->where('customer_id', $record->customer_id);
+                                                        })->count();
+
+                                                        return $count.' pago(s) registrado(s)';
+                                                    }),
+                                            ]),
+                                    ]),
+
+                            ])
+                            ->hidden(fn (?Customer $record) => $record === null),
 
                         Forms\Components\Section::make('Resumen')
                             ->icon('heroicon-o-chart-bar')
