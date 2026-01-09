@@ -4,7 +4,8 @@ namespace App\Filament\Resources;
 
 use App\Enums\TypeReceipt;
 use App\Filament\Resources\SaleResource\Pages;
-use App\Models\Discount;
+use App\Filament\Resources\SaleResource\RelationManagers;
+use App\Models\Currency;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Services\SaleCalculationService;
@@ -34,14 +35,13 @@ class SaleResource extends Resource
     {
         return $form
             ->schema([
-                // Sección: Tipo de Documento
+                // Sección: Vendedor
                 Forms\Components\Section::make('Vendedor')
                     ->schema([
                         Forms\Components\Select::make('user_id')
                             ->label('Vendedor')
                             ->relationship('user', 'name')
-                            ->searchable(['name', 'document'])
-                            ->preload()
+                            ->default(Auth::id())
                             ->required(),
                     ])
                     ->columnSpan(4),
@@ -57,17 +57,7 @@ class SaleResource extends Resource
                             ->required()
                             ->createOptionForm(fn (Form $form) => CustomerResource::form($form))
                             ->createOptionModalHeading('Crear Cliente')
-                            ->live()
-                            ->afterStateUpdated(function ($state, Set $set) {
-                                if (! $state) {
-                                    return;
-                                }
-
-                                $customer = \App\Models\Customer::find($state);
-                                if ($customer) {
-                                    $set('customer_address', $customer->address);
-                                }
-                            }),
+                            ->live(),
                     ])
                     ->columnSpan(8),
 
@@ -85,11 +75,11 @@ class SaleResource extends Resource
                                     Auth::id()
                                 );
 
-                                $set('document_series', $result['document_series']);
-                                $set('document_number', $result['document_number']);
+                                $set('series', $result['series']);
+                                $set('number', $result['number']);
                             })
                             ->columnSpan(2),
-                        Forms\Components\TextInput::make('document_series')
+                        Forms\Components\TextInput::make('series')
                             ->label(fn (Get $get) => match ($get('document_type')) {
                                 TypeReceipt::Bill => 'Serie de Factura',
                                 TypeReceipt::Ticket => 'Serie de Ticket',
@@ -98,7 +88,7 @@ class SaleResource extends Resource
                             ->disabled()
                             ->dehydrated()
                             ->columnSpan(2),
-                        Forms\Components\TextInput::make('document_number')
+                        Forms\Components\TextInput::make('number')
                             ->label(fn (Get $get) => match ($get('document_type')) {
                                 TypeReceipt::Bill => 'Número de Factura',
                                 TypeReceipt::Ticket => 'Número de Ticket',
@@ -107,7 +97,7 @@ class SaleResource extends Resource
                             ->disabled()
                             ->dehydrated()
                             ->columnSpan(2),
-                        Forms\Components\DatePicker::make('document_date')
+                        Forms\Components\DatePicker::make('sale_date')
                             ->label('Fecha del Documento')
                             ->required()
                             ->default(now())
@@ -153,19 +143,31 @@ class SaleResource extends Resource
                                             return;
                                         }
 
-                                        // Cargar datos del producto
-                                        $set('unit_price', $product->price_out);
+                                        // Cargar datos del producto e impuestos
+                                        $set('unit_price', $product->sale_price);
                                         $set('quantity', 1);
+                                        $set('tax_rate_id', $product->tax_rate_id);
 
-                                        // Cargar impuesto si existe
-                                        if ($product->tax_rate_id) {
-                                            $set('tax_rate_id', $product->tax_rate_id);
+                                        // Snapshot de impuestos
+                                        if ($product->taxRate) {
+                                            $set('tax_rate', $product->taxRate->rate);
+                                            $set('tax_name', $product->taxRate->name);
                                         }
 
                                         // Calcular totales
                                         SaleCalculationService::calculateLineItem($get, $set);
-                                    })
-                                    ->columnSpan(4),
+                                    }),
+
+                                Forms\Components\TextInput::make('unit_price')
+                                    ->label('Precio Unitario')
+                                    ->required()
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->prefix('$')
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function (Get $get, Set $set) {
+                                        SaleCalculationService::calculateLineItem($get, $set);
+                                    }),
 
                                 Forms\Components\TextInput::make('quantity')
                                     ->label('Cantidad')
@@ -193,40 +195,19 @@ class SaleResource extends Resource
                                         }
 
                                         SaleCalculationService::calculateLineItem($get, $set);
-                                    })
-                                    ->columnSpan(2),
-
-                                Forms\Components\TextInput::make('unit_price')
-                                    ->label('Precio Unitario')
-                                    ->required()
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->prefix('$')
-                                    ->live(onBlur: true)
-                                    ->afterStateUpdated(function (Get $get, Set $set) {
-                                        SaleCalculationService::calculateLineItem($get, $set);
-                                    })
-                                    ->columnSpan(2),
-
-                                Forms\Components\TextInput::make('discount_amount')
-                                    ->label('Descuento')
-                                    ->numeric()
-                                    ->default(0)
-                                    ->minValue(0)
-                                    ->prefix('$')
-                                    ->live(onBlur: true)
-                                    ->afterStateUpdated(function (Get $get, Set $set) {
-                                        SaleCalculationService::calculateLineItem($get, $set);
-                                    })
-                                    ->columnSpan(4),
+                                    }),
 
                                 Forms\Components\TextInput::make('subtotal')
-                                    ->label('Total Neto')
+                                    ->label('Subtotal Neto')
                                     ->readOnly()
-                                    ->prefix('$')
-                                    ->columnSpan(4),
+                                    ->prefix('$'),
+
+                                Forms\Components\Hidden::make('tax_rate'),
+                                Forms\Components\Hidden::make('tax_name'),
+                                Forms\Components\Hidden::make('tax_amount'),
+                                Forms\Components\Hidden::make('tax_rate_id'),
                             ])
-                            ->columns(8)
+                            ->columns(2)
                             ->defaultItems(0)
                             ->addActionLabel('Añadir artículo')
                             ->collapsible()
@@ -244,77 +225,68 @@ class SaleResource extends Resource
                     ])
                     ->columnSpan(9),
 
-                // Sección: Totales
-                Forms\Components\Section::make('Totales')
-                    ->schema([
-                        /*  Forms\Components\Select::make('discount_id')
-                            ->label('Código de Descuento')
-                            ->relationship('discount', 'code')
-                            ->searchable(['code', 'name'])
-                            ->live()
-                            ->afterStateUpdated(function ($state, Get $get, Set $set) {
-                                SaleCalculationService::applyDiscount($get, $set, $state);
-                            }), */
+                // Grupo de secciones en la columna derecha
+                Forms\Components\Group::make([
 
-                        Forms\Components\TextInput::make('total_base')
-                            ->label('Subtotal Base')
-                            ->readOnly()
-                            ->prefix('$')
-                            ->default('0.00'),
+                    // Sección: Totales
+                    Forms\Components\Section::make('Totales')
+                        ->schema([
+                            Forms\Components\TextInput::make('subtotal')
+                                ->label('Subtotal')
+                                ->readOnly()
+                                ->prefix('$')
+                                ->default('0.00'),
 
-                        Forms\Components\TextInput::make('total_taxes')
-                            ->label('Total Impuestos')
-                            ->readOnly()
-                            ->prefix('$')
-                            ->default('0.00'),
+                            Forms\Components\TextInput::make('taxable_base')
+                                ->label('Base Imponible')
+                                ->readOnly()
+                                ->prefix('$')
+                                ->default('0.00'),
 
-                        Forms\Components\TextInput::make('total_discounts')
-                            ->label('Descuentos')
-                            ->readOnly()
-                            ->prefix('$')
-                            ->default('0.00'),
+                            Forms\Components\TextInput::make('total_tax')
+                                ->label('Total Impuestos')
+                                ->readOnly()
+                                ->prefix('$')
+                                ->default('0.00'),
 
-                        Forms\Components\TextInput::make('total_amount')
-                            ->label('TOTAL A PAGAR')
-                            ->readOnly()
-                            ->prefix('$')
-                            ->extraAttributes(['class' => 'font-bold text-lg'])
-                            ->default('0.00'),
-                    ])
+                            Forms\Components\TextInput::make('total_amount')
+                                ->label('TOTAL A PAGAR')
+                                ->readOnly()
+                                ->prefix('$')
+                                ->extraAttributes(['class' => 'font-bold text-lg'])
+                                ->default('0.00'),
+                        ]),
+                    // Sección: Moneda y Tasa de Cambio
+                    Forms\Components\Section::make('Moneda')
+                        ->schema([
+                            Forms\Components\Select::make('currency_id')
+                                ->label('Moneda')
+                                ->options(Currency::query()->pluck('name', 'currency_id'))
+                                ->afterStateUpdated(function ($state, Get $get, Set $set) {
+
+                                    $currency = Currency::find($state)?->getCurrentRate();
+                                    $total_amount = $get('total_amount');
+                                    $exchanged_amount = $total_amount * $currency;
+                                    $set('exchange_rate', number_format($currency, 2));
+                                    $set('exchanged_amount', number_format($exchanged_amount, 2));
+                                })
+                                ->live(onBlur: true)
+                                ->default('USD'),
+
+                            Forms\Components\TextInput::make('exchange_rate')
+                                ->label('Tasa de Cambio')
+                                ->readOnly(),
+
+                            Forms\Components\TextInput::make('exchanged_amount')
+                                ->label('TOTAL AL CAMBIO')
+                                ->readOnly()
+                                ->prefix('$')
+                                ->extraAttributes(['class' => 'font-bold text-lg'])
+                                ->default('0.00'),
+                        ])->visibleOn('create'),
+
+                ])
                     ->columnSpan(3),
-
-                // Sección: Formas de Pago
-                Forms\Components\Section::make('Formas de Pago')
-                    ->schema([
-                        Forms\Components\Repeater::make('payments')
-                            ->label('')
-                            ->schema([
-                                Forms\Components\Select::make('constant')
-                                    ->label('Forma de pago')
-                                    ->options([
-                                        'TYPE_CASH' => 'Al contado',
-                                        'TYPE_CARD' => 'Tarjeta',
-                                        'TYPE_TRANSFER' => 'Transferencia',
-                                        'TYPE_DEBIT' => 'Recibo Domiciliado',
-                                    ])
-                                    ->required(),
-
-                                Forms\Components\TextInput::make('amount')
-                                    ->label('Cantidad')
-                                    ->numeric()
-                                    ->required()
-                                    ->prefix('€'),
-
-                                Forms\Components\DatePicker::make('dueDate')
-                                    ->label('Fecha de Vencimiento'),
-                            ])
-                            ->columns(3)
-                            ->defaultItems(0)
-                            ->addActionLabel('Añadir forma de pago')
-                            ->collapsible(),
-                    ])
-                    ->columnSpanFull()
-                    ->collapsed(),
             ])
             ->columns(12);
     }
@@ -323,7 +295,7 @@ class SaleResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('document_number')
+                Tables\Columns\TextColumn::make('number')
                     ->label('Nº Documento')
                     ->searchable()
                     ->sortable(),
@@ -333,8 +305,8 @@ class SaleResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('document_date')
-                    ->label('Fecha del Documento')
+                Tables\Columns\TextColumn::make('sale_date')
+                    ->label('Fecha')
                     ->date('d/m/Y')
                     ->sortable(),
 
@@ -348,6 +320,11 @@ class SaleResource extends Resource
                     ->money('USD')
                     ->sortable(),
 
+                Tables\Columns\TextColumn::make('payment_status')
+                    ->label('Estado Pago')
+                    ->badge()
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Creado')
                     ->dateTime('d/m/Y H:i')
@@ -359,7 +336,7 @@ class SaleResource extends Resource
                     ->label('Tipo Comprobante')
                     ->options(TypeReceipt::class),
 
-                Tables\Filters\Filter::make('document_date')
+                Tables\Filters\Filter::make('sale_date')
                     ->form([
                         Forms\Components\DatePicker::make('from')
                             ->label('Desde'),
@@ -368,8 +345,8 @@ class SaleResource extends Resource
                     ])
                     ->query(function ($query, array $data) {
                         return $query
-                            ->when($data['from'], fn ($q, $date) => $q->whereDate('document_date', '>=', $date))
-                            ->when($data['until'], fn ($q, $date) => $q->whereDate('document_date', '<=', $date));
+                            ->when($data['from'], fn ($q, $date) => $q->whereDate('sale_date', '>=', $date))
+                            ->when($data['until'], fn ($q, $date) => $q->whereDate('sale_date', '<=', $date));
                     }),
             ])
             ->actions([
@@ -387,7 +364,9 @@ class SaleResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            RelationManagers\PaymentsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

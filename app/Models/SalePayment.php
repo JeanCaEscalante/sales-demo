@@ -33,6 +33,7 @@ class SalePayment extends Model
     ];
 
     protected $casts = [
+        'payment_method' => \App\Enums\TypePaymentMethod::class,
         'payment_date' => 'date',
         'amount' => 'decimal:2',
     ];

@@ -2,14 +2,16 @@
 
 namespace App\Enums;
 
+use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum TypePaymentMethod: string implements HasLabel
+enum TypePaymentMethod: string implements HasLabel, HasColor
 {
     case CASH = 'cash';
     case CREDIT_CARD = 'credit_card';
     case DEBIT_CARD = 'debit_card';
     case TRANSFER = 'transfer';
+    case MOBILE_PAY = 'mobile_pay';
 
     public function getLabel(): ?string
     {
@@ -18,6 +20,18 @@ enum TypePaymentMethod: string implements HasLabel
             self::CREDIT_CARD => 'Tarjeta de Crédito',
             self::DEBIT_CARD => 'Tarjeta de Débito',
             self::TRANSFER => 'Transferencia',
+            self::MOBILE_PAY => 'Pago Móvil',
+        };
+    }
+
+    public function getColor(): ?string
+    {
+        return match ($this) {
+            self::CASH => 'success',
+            self::CREDIT_CARD => 'primary',
+            self::DEBIT_CARD => 'warning',
+            self::TRANSFER => 'info',
+            self::MOBILE_PAY => 'secondary',
         };
     }
 }

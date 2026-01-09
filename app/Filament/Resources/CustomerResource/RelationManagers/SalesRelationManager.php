@@ -28,8 +28,8 @@ class SalesRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('invoice_number')
             ->columns([
-                Tables\Columns\TextColumn::make('invoice_number')
-                    ->label('Nro. Factura')
+                Tables\Columns\TextColumn::make('number')
+                    ->label('Nº Documento')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('series')

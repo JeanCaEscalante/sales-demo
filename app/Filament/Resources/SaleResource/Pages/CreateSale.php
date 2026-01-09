@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\SaleResource\Pages;
 
+use App\Enums\TypePaymentStatus;
 use App\Filament\Resources\SaleResource;
 use App\Models\Product;
 use App\Services\InventoryService;
@@ -15,6 +16,8 @@ class CreateSale extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['user_id'] = Auth::id();
+        $data['payment_status'] = TypePaymentStatus::PENDING;
+        $data['balance'] = $data['total_amount'];
 
         return $data;
     }
