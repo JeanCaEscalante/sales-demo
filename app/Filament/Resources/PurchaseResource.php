@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\TypeReceipt;
 use App\Filament\Resources\PurchaseResource\Pages;
+use App\Models\Currency;
 use App\Models\Purchase;
 use Filament\Forms;
 use Filament\Forms\Components\Actions\Action;
@@ -82,6 +83,46 @@ class PurchaseResource extends Resource
                     ])->columns(8)
                     ->columnSpanFull(),
 
+                // Sección: Moneda y Tasa de Cambio
+                Forms\Components\Section::make('Moneda')
+                    ->schema([
+                        Forms\Components\Select::make('currency_id')
+                            ->label('Moneda de la Factura')
+                            ->options(Currency::query()->where('is_active', true)->pluck('name', 'currency_id'))
+                            ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
+                                $currency = Currency::find($state)?->getCurrentRate() ?? 1;
+                                $set('exchange_rate', number_format($currency, 2));
+                                
+                                // Recalcular totales con nueva tasa
+                                self::updateTotals($set, $get);
+                            })
+                            ->live(onBlur: true)
+                            ->default(function () {
+                                return Currency::where('is_base', true)->value('currency_id');
+                            })
+                            ->required()
+                            ->columnSpan(2),
+
+                        Forms\Components\TextInput::make('exchange_rate')
+                            ->label('Tasa de Cambio')
+                            ->readOnly()
+                            ->prefix('1 USD =')
+                            ->suffix(fn (Forms\Get $get) => Currency::find($get('currency_id'))?->symbol ?? '')
+                            ->default('1.00')
+                            ->dehydrated()
+                            ->columnSpan(2),
+
+                        Forms\Components\TextInput::make('exchanged_amount')
+                            ->label('Total en Moneda Base (USD)')
+                            ->readOnly()
+                            ->prefix('$')
+                            ->extraAttributes(['class' => 'font-bold text-lg'])
+                            ->default('0.00')
+                            ->columnSpan(2),
+                    ])
+                    ->columns(6)
+                    ->columnSpanFull(),
+
                 Forms\Components\Section::make('Detalles de la Compra')
                     ->schema([
                         Forms\Components\Repeater::make('items')
@@ -136,10 +177,10 @@ class PurchaseResource extends Resource
                                                     ->live(onBlur: true)
                                                     ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get) => self::updateCalculations($set, $get)),
 
-                                                Forms\Components\TextInput::make('unit_price')
-                                                    ->label('Precio Unitario')
+Forms\Components\TextInput::make('unit_price')
+                                                    ->label('Costo Unitario (Moneda Factura)')
                                                     ->numeric()
-                                                    ->prefix('$')
+                                                    ->prefix(fn (Forms\Get $get) => Currency::find($get('../../currency_id'))?->symbol ?? '$')
                                                     ->step(0.0001)
                                                     ->required()
                                                     ->live(onBlur: true)
@@ -238,6 +279,18 @@ class PurchaseResource extends Resource
                                     ->schema([
                                         Forms\Components\Grid::make(4)
                                             ->schema([
+                                                Forms\Components\Toggle::make('update_sale_price')
+                                                    ->label('Actualizar Precio de Venta')
+                                                    ->live()
+                                                    ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
+                                                        if (! $get('update_sale_price')) {
+                                                            $set('sale_price', null);
+                                                        }
+                                                        self::updateCalculations($set, $get);
+                                                    })
+                                                    ->helperText('Autoriza modificar el precio del producto')
+                                                    ->columnSpanFull(),
+
                                                 Forms\Components\TextInput::make('profit')
                                                     ->label('% Ganancia')
                                                     ->numeric()
@@ -256,18 +309,19 @@ class PurchaseResource extends Resource
                                                     ->helperText('Margen sobre costo'),
 
                                                 Forms\Components\TextInput::make('sale_price')
-                                                    ->label('Precio Venta')
+                                                    ->label('Nuevo Precio Venta (Base)')
                                                     ->numeric()
                                                     ->prefix('$')
                                                     ->step(0.01)
-                                                    ->required()
+                                                    ->required(fn (Forms\Get $get) => $get('update_sale_price'))
+                                                    ->disabled(fn (Forms\Get $get) => ! $get('update_sale_price'))
                                                     ->live(onBlur: true)
                                                     ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
                                                         // Primero recalcular profit, luego el resto
                                                         self::recalculateProfitFromSalePrice($set, $get);
                                                         self::updateCalculations($set, $get);
                                                     })
-                                                    ->helperText('Sin IVA')
+                                                    ->helperText('Precio en moneda base (USD)')
                                                     ->extraAttributes(['class' => 'font-semibold']),
 
                                                 Forms\Components\TextInput::make('unit_tax_amount')
@@ -424,6 +478,11 @@ class PurchaseResource extends Resource
         $profit = (float) ($get('profit') ?? 0);
         $taxExempt = (bool) ($get('tax_exempt') ?? false);
         $taxId = $get('tax_id');
+        $updateSalePrice = (bool) ($get('update_sale_price') ?? false);
+        
+        // Obtener tasa de cambio del formulario principal
+        $exchangeRate = (float) ($get('../../exchange_rate') ?? 1);
+        $currencyId = $get('../../currency_id');
 
         // Validar cantidad mínima
         if ($quantity <= 0) {
@@ -431,31 +490,49 @@ class PurchaseResource extends Resource
         }
 
         // ========================================
-        // 2. CÁLCULOS DE COMPRA
+        // 2. CÁLCULOS DE COMPRA (EN MONEDA FACTURA)
         // ========================================
 
         // Precio unitario después de descuento
         $unitPriceAfterDiscount = $unitPrice * (1 - ($discount / 100));
 
-        // Subtotal de compra (base para calcular totales)
+        // Subtotal de compra (en moneda factura)
         $subtotal = $quantity * $unitPriceAfterDiscount;
         $set('subtotal', number_format($subtotal, 2, '.', ''));
 
         // ========================================
-        // 3. CÁLCULOS DE VENTA
+        // 3. CONVERSIÓN A MONEDA BASE (USD)
+        // ========================================
+        
+        // Convertir costo a moneda base para inventario
+        $unitPriceInBase = $unitPriceAfterDiscount / $exchangeRate;
+        $subtotalInBase = $subtotal / $exchangeRate;
+
+        // ========================================
+        // 4. CÁLCULOS DE VENTA (EN MONEDA BASE)
         // ========================================
 
-        // Precio de venta (sin IVA)
+        // Precio de venta actual del producto (en moneda base)
+        $productId = $get('product_id');
+        $currentSalePrice = 0;
+        if ($productId) {
+            $product = \App\Models\Product::find($productId);
+            if ($product) {
+                $currentSalePrice = (float) $product->sale_price;
+            }
+        }
+
+        // Precio de venta del formulario (en moneda base)
         $salePrice = (float) ($get('sale_price') ?? 0);
 
-        // Si no hay precio de venta, calcular desde ganancia
-        if ($salePrice <= 0 && $unitPriceAfterDiscount > 0) {
-            $salePrice = $unitPriceAfterDiscount * (1 + ($profit / 100));
+        // Si se autoriza actualizar y no hay precio, calcular desde ganancia
+        if ($updateSalePrice && $salePrice <= 0 && $unitPriceInBase > 0) {
+            $salePrice = $unitPriceInBase * (1 + ($profit / 100));
             $set('sale_price', number_format($salePrice, 2, '.', ''));
         }
 
         // ========================================
-        // 4. CÁLCULOS DE IMPUESTOS
+        // 5. CÁLCULOS DE IMPUESTOS
         // ========================================
 
         $taxRate = 0;
@@ -469,11 +546,13 @@ class PurchaseResource extends Resource
                 $taxRate = $tax->rate;
                 $taxName = $tax->name;
 
-                // IVA sobre el subtotal de compra (para contabilidad)
-                $taxAmount = $subtotal * ($taxRate / 100);
+                // IVA sobre el subtotal de compra en moneda base (para contabilidad)
+                $taxAmount = $subtotalInBase * ($taxRate / 100);
 
                 // IVA unitario sobre precio de venta (para PVP)
-                $unitTaxAmount = $salePrice * ($taxRate / 100);
+                if ($salePrice > 0) {
+                    $unitTaxAmount = $salePrice * ($taxRate / 100);
+                }
             }
         }
 
@@ -483,19 +562,19 @@ class PurchaseResource extends Resource
         $set('unit_tax_amount', number_format($unitTaxAmount, 2, '.', ''));
 
         // ========================================
-        // 5. PRECIO FINAL Y NETO
+        // 6. PRECIO FINAL Y NETO
         // ========================================
 
         // Precio final al público (con IVA)
         $finalPrice = $salePrice + $unitTaxAmount;
         $set('final_price', number_format($finalPrice, 2, '.', ''));
 
-        // Neto total de la línea (subtotal compra + impuestos)
-        $netTotal = $subtotal + $taxAmount;
+        // Neto total de la línea (subtotal en moneda base + impuestos)
+        $netTotal = $subtotalInBase + $taxAmount;
         $set('net_total', number_format($netTotal, 2, '.', ''));
 
         // ========================================
-        // 6. ACTUALIZAR TOTALES DEL FORMULARIO
+        // 7. ACTUALIZAR TOTALES DEL FORMULARIO
         // ========================================
         self::updateTotals($set, $get);
     }
@@ -511,38 +590,53 @@ class PurchaseResource extends Resource
         }
 
         $items = collect($items ?? []);
+        
+        // Obtener tasa de cambio
+        $exchangeRate = (float) ($get('exchange_rate') ?? 1);
 
         $taxableSubtotal = 0;
         $exemptSubtotal = 0;
         $totalTax = 0;
         $totalQuantity = 0;
+        $subtotalInOriginalCurrency = 0;
 
         foreach ($items as $item) {
             $subtotal = (float) ($item['subtotal'] ?? 0);
+            $netTotal = (float) ($item['net_total'] ?? 0);
             $taxAmount = (float) ($item['tax_amount'] ?? 0);
             $quantity = (float) ($item['quantity'] ?? 0);
             $taxExempt = $item['tax_exempt'] ?? false;
 
+            // Subtotal en moneda original (para mostrar al usuario)
+            $subtotalInOriginalCurrency += $subtotal;
+
             if ($taxExempt) {
-                $exemptSubtotal += $subtotal;
+                $exemptSubtotal += $netTotal; // Usar net_total (ya convertido)
             } else {
-                $taxableSubtotal += $subtotal;
+                $taxableSubtotal += $netTotal; // Usar net_total (ya convertido)
                 $totalTax += $taxAmount;
             }
 
             $totalQuantity += $quantity;
         }
 
-        $subtotal = $taxableSubtotal + $exemptSubtotal;
-        $totalAmount = $subtotal + $totalTax;
+        // Calcular totales en moneda base (USD)
+        $subtotalInBase = $taxableSubtotal + $exemptSubtotal;
+        $totalAmountInBase = $subtotalInBase + $totalTax;
 
         $prefix = $isRemote ? '../../' : '';
 
-        $set($prefix.'subtotal', number_format($subtotal, 2, '.', ''));
+        // Actualizar campos en moneda original
+        $set($prefix.'subtotal', number_format($subtotalInOriginalCurrency, 2, '.', ''));
+        
+        // Actualizar campos convertidos a moneda base
         $set($prefix.'total_exempt', number_format($exemptSubtotal, 2, '.', ''));
         $set($prefix.'taxable_base', number_format($taxableSubtotal, 2, '.', ''));
         $set($prefix.'total_tax', number_format($totalTax, 2, '.', ''));
-        $set($prefix.'total_amount', number_format($totalAmount, 2, '.', ''));
+        $set($prefix.'total_amount', number_format($totalAmountInBase, 2, '.', ''));
+        
+        // Actualizar monto convertido (visible en la cabecera)
+        $set($prefix.'exchanged_amount', number_format($totalAmountInBase, 2, '.', ''));
     }
 
     public static function table(Table $table): Table
