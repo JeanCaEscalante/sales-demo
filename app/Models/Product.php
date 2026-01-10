@@ -101,13 +101,21 @@ class Product extends Model
 
     public function setUnitPrice(float $price): void
     {
-        $this->unit_price = $price;
+        if ($price < 0) {
+            throw new \InvalidArgumentException('El precio de compra no puede ser negativo');
+        }
+        
+        $this->unit_price = round($price, 4);
         $this->save();
     }
 
     public function setSalePrice(float $price): void
     {
-        $this->sale_price = $price;
+        if ($price < 0) {
+            throw new \InvalidArgumentException('El precio de venta no puede ser negativo');
+        }
+        
+        $this->sale_price = round($price, 2);
         $this->save();
     }
 

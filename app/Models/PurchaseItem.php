@@ -25,6 +25,7 @@ class PurchaseItem extends Model
         'tax_name',
         'tax_amount',
         'profit',
+        'update_sale_price',
         'sale_price',
     ];
 
@@ -38,7 +39,28 @@ class PurchaseItem extends Model
         'tax_amount' => 'decimal:2',
         'profit' => 'decimal:2',
         'sale_price' => 'decimal:2',
+        'update_sale_price' => 'boolean',
     ];
+
+    /**
+     * Evento que se ejecuta antes de guardar el modelo
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($purchaseItem) {
+            // Si el toggle está desactivado, asegurar que el precio de venta sea null
+            if (! $purchaseItem->update_sale_price) {
+                $purchaseItem->sale_price = null;
+            }
+            
+            // Si el toggle está activo pero no hay precio, no permitir guardar
+            if ($purchaseItem->update_sale_price && empty($purchaseItem->sale_price)) {
+                throw new \InvalidArgumentException('El precio de venta es requerido cuando se activa la actualización');
+            }
+        });
+    }
 
     /**
      * Multiplicador de descuento: (1 - discount/100)

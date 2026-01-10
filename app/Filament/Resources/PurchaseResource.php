@@ -348,6 +348,11 @@ Forms\Components\Section::make('Información del Comprobante')
                                                     ->prefix(fn () => Currency::where('is_base', true)->first()?->symbol ?? '$')
                                                     ->required(fn (Forms\Get $get) => $get('update_sale_price'))
                                                     ->disabled(fn (Forms\Get $get) => ! $get('update_sale_price'))
+                                                    ->rules([
+                                                        fn (Forms\Get $get): array => $get('update_sale_price') 
+                                                            ? ['required', 'numeric', 'min:0.01'] 
+                                                            : []
+                                                    ])
                                                     ->live(onBlur: true)
                                                     ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
                                                         // Primero recalcular profit, luego el resto
@@ -393,6 +398,17 @@ Forms\Components\Section::make('Información del Comprobante')
                                         $data['tax_rate'] = $tax->rate;
                                         $data['tax_name'] = $tax->name;
                                     }
+                                }
+
+                                // Asegurar que el toggle se guarde correctamente
+                                $data['update_sale_price'] = (bool) ($data['update_sale_price'] ?? false);
+
+                                // Si el toggle está activo, asegurar que el precio de venta se guarde con redondeo
+                                if ($data['update_sale_price'] && !empty($data['sale_price'])) {
+                                    $data['sale_price'] = round((float) $data['sale_price'], 2);
+                                } elseif (! $data['update_sale_price']) {
+                                    // Si el toggle está desactivado, limpiar el precio de venta
+                                    $data['sale_price'] = null;
                                 }
 
                                 return $data;
