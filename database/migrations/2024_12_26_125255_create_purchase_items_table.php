@@ -48,6 +48,7 @@ return new class extends Migration
 
             // Configuración de venta (snapshot al momento de compra)
             $table->decimal('profit', 5, 2)->default(0)->comment('Porcentaje de ganancia 0-100');
+            $table->boolean('update_sale_price')->default(false);
             $table->decimal('sale_price', 12, 2)->default(0)->comment('Precio venta sin IVA');
 
             $table->timestamps();
