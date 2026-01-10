@@ -177,5 +177,8 @@ class PaymentsRelationManager extends RelationManager
             ->defaultSort('payment_date', 'desc');
     }
 
-    public function isReadOnly(): bool { return false; }
+    public function isReadOnly(): bool
+    {
+        return false;
+    }
 }
