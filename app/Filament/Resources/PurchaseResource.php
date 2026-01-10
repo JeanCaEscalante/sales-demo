@@ -145,7 +145,8 @@ Forms\Components\Section::make('Información del Comprobante')
                     ->numeric()
                     ->step(0.01)
                     ->minValue(0.01)
-                    ->helperText('Tasa de conversión a moneda local')
+                    ->rules(['required', 'numeric', 'min:0.01'])
+                    ->helperText('Tasa de conversión a moneda local (según factura)')
                     ->columnSpan(4),
             ]),
     ])
