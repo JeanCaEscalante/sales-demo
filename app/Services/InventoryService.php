@@ -18,6 +18,10 @@ class InventoryService
 
     public function updatePurchasePrice(float $price)
     {
+        if ($price < 0) {
+            throw new \InvalidArgumentException('El precio de compra no puede ser negativo');
+        }
+        
         $this->product->setUnitPrice($price);
     }
 
