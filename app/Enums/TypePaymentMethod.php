@@ -5,7 +5,7 @@ namespace App\Enums;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum TypePaymentMethod: string implements HasLabel, HasColor
+enum TypePaymentMethod: string implements HasColor, HasLabel
 {
     case CASH = 'cash';
     case CREDIT_CARD = 'credit_card';
