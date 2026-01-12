@@ -163,14 +163,6 @@ class PaymentsRelationManager extends RelationManager
                             ->send();
                     }),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->after(function () {
-                            $this->getOwnerRecord()->updatePaymentStatus();
-                        }),
-                ]),
-            ])
             ->emptyStateHeading('Sin pagos registrados')
             ->emptyStateDescription('Esta venta aún no tiene pagos registrados.')
             ->emptyStateIcon('heroicon-o-currency-dollar')
