@@ -348,11 +348,6 @@ class CustomerResource extends Resource
                         ->requiresConfirmation(),
                 ]),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ])
             ->emptyStateHeading('Sin clientes registrados')
             ->emptyStateDescription('Agrega tu primer cliente para comenzar a vender.')
             ->emptyStateIcon('heroicon-o-user-group')

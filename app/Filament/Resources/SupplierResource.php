@@ -227,11 +227,6 @@ class SupplierResource extends Resource
                         ->requiresConfirmation(),
                 ]),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ])
             ->emptyStateHeading('Sin proveedores')
             ->emptyStateDescription('Agrega tu primer proveedor para comenzar.')
             ->emptyStateIcon('heroicon-o-building-storefront')

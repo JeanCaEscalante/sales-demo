@@ -296,7 +296,6 @@ class ProductResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
                     Tables\Actions\BulkAction::make('activate')
                         ->label('Activar seleccionados')
                         ->icon('heroicon-o-check-circle')
