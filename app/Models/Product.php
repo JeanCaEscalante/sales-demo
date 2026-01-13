@@ -104,7 +104,7 @@ class Product extends Model
         if ($price < 0) {
             throw new \InvalidArgumentException('El precio de compra no puede ser negativo');
         }
-        
+
         $this->unit_price = round($price, 4);
         $this->save();
     }
@@ -114,7 +114,7 @@ class Product extends Model
         if ($price < 0) {
             throw new \InvalidArgumentException('El precio de venta no puede ser negativo');
         }
-        
+
         $this->sale_price = round($price, 2);
         $this->save();
     }

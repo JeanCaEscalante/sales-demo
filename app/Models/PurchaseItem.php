@@ -54,7 +54,7 @@ class PurchaseItem extends Model
             if (! $purchaseItem->update_sale_price) {
                 $purchaseItem->sale_price = null;
             }
-            
+
             // Si el toggle está activo pero no hay precio, no permitir guardar
             if ($purchaseItem->update_sale_price && empty($purchaseItem->sale_price)) {
                 throw new \InvalidArgumentException('El precio de venta es requerido cuando se activa la actualización');
