@@ -57,102 +57,102 @@ class PurchaseResource extends Resource
                     ])
                     ->columnSpan(8),
 
-Forms\Components\Section::make('Información del Comprobante')
-    ->description('Datos del documento de compra y moneda de la transacción')
-    ->schema([
-        // Primera fila: Datos del comprobante
-        Forms\Components\Grid::make(8)
-            ->schema([
-                Forms\Components\Select::make('document_type')
-                    ->label('Tipo Comprobante')
-                    ->options(TypeReceipt::class)
-                    ->required()
-                    ->placeholder('Seleccione tipo')
-                    ->columnSpan(2),
-                    
-                Forms\Components\TextInput::make('series')
-                    ->label('Serie')
-                    ->placeholder('Ej: F001')
-                    ->maxLength(10)
-                    ->columnSpan(2),
-                    
-                Forms\Components\TextInput::make('receipt_number')
-                    ->label('Número')
-                    ->placeholder('Ej: 00001234')
-                    ->required()
-                    ->unique(ignoreRecord: true, modifyRuleUsing: function ($rule, Forms\Get $get) {
-                        return $rule->where('supplier_id', $get('supplier_id'));
-                    })
-                    ->columnSpan(2),
-                    
-                Forms\Components\DatePicker::make('purchase_date')
-                    ->label('Fecha')
-                    ->default(now())
-                    ->maxDate(now())
-                    ->required()
-                    ->native(false)
-                    ->displayFormat('d/m/Y')
-                    ->columnSpan(2),
-            ]),
-        
-        // Divisor visual
-        Forms\Components\Grid::make(1)
-            ->schema([
-                Forms\Components\Placeholder::make('divider')
-                    ->label('')
-                    ->content('')
-                    ->extraAttributes(['class' => 'border-t border-gray-200 dark:border-gray-700 my-2']),
-            ]),
-        
-        // Segunda fila: Moneda y tasa de cambio
-        Forms\Components\Grid::make(8)
-            ->schema([
-                Forms\Components\Select::make('currency_id')
-                    ->label('Moneda de la Factura')
-                    ->options(Currency::query()->where('is_active', true)->pluck('name', 'currency_id'))
-                    ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
-                        $currency = Currency::find($state);
-                        $rate = $currency?->getCurrentRate() ?? 1;
-                        $set('exchange_rate', number_format($rate, 2));
-                        
-                        // Recalcular precios de venta si el toggle está activo
-                        self::recalculateSalePricesAfterCurrencyChange($set, $get);
-                        
-                        // Recalcular totales con nueva tasa
-                        self::updateTotals($set, $get);
-                    })
-                    ->live(onBlur: true)
-                    ->default(function () {
-                        return Currency::where('is_base', true)->first()?->currency_id;
-                    })
-                    ->required()
-                    ->placeholder('Seleccione moneda')
-                    ->searchable()
-                    ->preload()
-                    ->columnSpan(4),
+                Forms\Components\Section::make('Información del Comprobante')
+                    ->description('Datos del documento de compra y moneda de la transacción')
+                    ->schema([
+                        // Primera fila: Datos del comprobante
+                        Forms\Components\Grid::make(8)
+                            ->schema([
+                                Forms\Components\Select::make('document_type')
+                                    ->label('Tipo Comprobante')
+                                    ->options(TypeReceipt::class)
+                                    ->required()
+                                    ->placeholder('Seleccione tipo')
+                                    ->columnSpan(2),
 
-                Forms\Components\TextInput::make('exchange_rate')
-                    ->label('Tasa de Cambio')
-                    ->prefix('1 USD =')
-                    ->suffix(fn (Forms\Get $get) => Currency::find($get('currency_id'))?->symbol ?? '')
-                    ->default('1.00')
-                    ->live(onBlur: true)
-                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set) {
-                        // Recalcular totales con nueva tasa
-                        self::updateTotals($set, $get);
-                    })
-                    ->dehydrated()
-                    ->numeric()
-                    ->step(0.01)
-                    ->minValue(0.01)
-                    ->rules(['required', 'numeric', 'min:0.01'])
-                    ->helperText('Tasa de conversión a moneda local (según factura)')
-                    ->columnSpan(4),
-            ]),
-    ])
-    ->columns(1)
-    ->columnSpanFull()
-    ->collapsible(),
+                                Forms\Components\TextInput::make('series')
+                                    ->label('Serie')
+                                    ->placeholder('Ej: F001')
+                                    ->maxLength(10)
+                                    ->columnSpan(2),
+
+                                Forms\Components\TextInput::make('receipt_number')
+                                    ->label('Número')
+                                    ->placeholder('Ej: 00001234')
+                                    ->required()
+                                    ->unique(ignoreRecord: true, modifyRuleUsing: function ($rule, Forms\Get $get) {
+                                        return $rule->where('supplier_id', $get('supplier_id'));
+                                    })
+                                    ->columnSpan(2),
+
+                                Forms\Components\DatePicker::make('purchase_date')
+                                    ->label('Fecha')
+                                    ->default(now())
+                                    ->maxDate(now())
+                                    ->required()
+                                    ->native(false)
+                                    ->displayFormat('d/m/Y')
+                                    ->columnSpan(2),
+                            ]),
+
+                        // Divisor visual
+                        Forms\Components\Grid::make(1)
+                            ->schema([
+                                Forms\Components\Placeholder::make('divider')
+                                    ->label('')
+                                    ->content('')
+                                    ->extraAttributes(['class' => 'border-t border-gray-200 dark:border-gray-700 my-2']),
+                            ]),
+
+                        // Segunda fila: Moneda y tasa de cambio
+                        Forms\Components\Grid::make(8)
+                            ->schema([
+                                Forms\Components\Select::make('currency_id')
+                                    ->label('Moneda de la Factura')
+                                    ->options(Currency::query()->where('is_active', true)->pluck('name', 'currency_id'))
+                                    ->afterStateUpdated(function ($state, Forms\Get $get, Forms\Set $set) {
+                                        $currency = Currency::find($state);
+                                        $rate = $currency?->getCurrentRate() ?? 1;
+                                        $set('exchange_rate', number_format($rate, 2));
+
+                                        // Recalcular precios de venta si el toggle está activo
+                                        self::recalculateSalePricesAfterCurrencyChange($set, $get);
+
+                                        // Recalcular totales con nueva tasa
+                                        self::updateTotals($set, $get);
+                                    })
+                                    ->live(onBlur: true)
+                                    ->default(function () {
+                                        return Currency::where('is_base', true)->first()?->currency_id;
+                                    })
+                                    ->required()
+                                    ->placeholder('Seleccione moneda')
+                                    ->searchable()
+                                    ->preload()
+                                    ->columnSpan(4),
+
+                                Forms\Components\TextInput::make('exchange_rate')
+                                    ->label('Tasa de Cambio')
+                                    ->prefix('1 USD =')
+                                    ->suffix(fn (Forms\Get $get) => Currency::find($get('currency_id'))?->symbol ?? '')
+                                    ->default('1.00')
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set) {
+                                        // Recalcular totales con nueva tasa
+                                        self::updateTotals($set, $get);
+                                    })
+                                    ->dehydrated()
+                                    ->numeric()
+                                    ->step(0.01)
+                                    ->minValue(0.01)
+                                    ->rules(['required', 'numeric', 'min:0.01'])
+                                    ->helperText('Tasa de conversión a moneda local (según factura)')
+                                    ->columnSpan(4),
+                            ]),
+                    ])
+                    ->columns(1)
+                    ->columnSpanFull()
+                    ->collapsible(),
 
                 Forms\Components\Section::make('Detalles de la Compra')
                     ->schema([
@@ -350,9 +350,9 @@ Forms\Components\Section::make('Información del Comprobante')
                                                     ->required(fn (Forms\Get $get) => $get('update_sale_price'))
                                                     ->disabled(fn (Forms\Get $get) => ! $get('update_sale_price'))
                                                     ->rules([
-                                                        fn (Forms\Get $get): array => $get('update_sale_price') 
-                                                            ? ['required', 'numeric', 'min:0.01'] 
-                                                            : []
+                                                        fn (Forms\Get $get): array => $get('update_sale_price')
+                                                            ? ['required', 'numeric', 'min:0.01']
+                                                            : [],
                                                     ])
                                                     ->live(onBlur: true)
                                                     ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get) {
@@ -386,7 +386,7 @@ Forms\Components\Section::make('Información del Comprobante')
                                     ->columnSpanFull()
                                     ->visibleOn('create'),
                             ])
-                            ->mutateRelationshipDataBeforeSaveUsing(function (array $data): array {
+                            ->mutateRelationshipDataBeforeCreateUsing(function (array $data): array {
 
                                 if ($data['tax_exempt'] ?? false) {
                                     $data['tax_rate_id'] = null;
@@ -405,7 +405,7 @@ Forms\Components\Section::make('Información del Comprobante')
                                 $data['update_sale_price'] = (bool) ($data['update_sale_price'] ?? false);
 
                                 // Si el toggle está activo, asegurar que el precio de venta se guarde con redondeo
-                                if ($data['update_sale_price'] && !empty($data['sale_price'])) {
+                                if ($data['update_sale_price'] && ! empty($data['sale_price'])) {
                                     $data['sale_price'] = round((float) $data['sale_price'], 2);
                                 } elseif (! $data['update_sale_price']) {
                                     // Si el toggle está desactivado, limpiar el precio de venta
@@ -419,8 +419,8 @@ Forms\Components\Section::make('Información del Comprobante')
                             ->reorderableWithButtons()
                             ->collapsible()
                             ->itemLabel(fn (array $state): ?string => isset($state['product_id'])
-                                    ? \App\Models\Product::find($state['product_id'])?->name ?? 'Producto'
-                                    : 'Nuevo Producto'
+                                ? \App\Models\Product::find($state['product_id'])?->name ?? 'Producto'
+                                : 'Nuevo Producto'
                             )
                             ->addActionLabel('+ Agregar Producto')
                             ->deleteAction(
@@ -512,7 +512,7 @@ Forms\Components\Section::make('Información del Comprobante')
         $exchangeRate = (float) ($get('../../exchange_rate') ?? 1);
 
         $unitPriceAfterDiscount = $unitPrice * (1 - ($discount / 100));
-        
+
         // Convertir costo a moneda base para cálculo correcto del profit
         $unitPriceInBase = $unitPriceAfterDiscount / $exchangeRate;
 
@@ -585,7 +585,7 @@ Forms\Components\Section::make('Información del Comprobante')
             // Siempre recalcular el precio cuando el toggle está activo
             // Cálculo: costo base * (1 + margen/100) con redondeo a 2 decimales
             $newSalePrice = round($unitPriceInBase * (1 + ($profit / 100)), 2, PHP_ROUND_HALF_UP);
-            
+
             // Solo actualizar si el usuario no ha modificado manualmente el precio
             if ($salePrice <= 0 || abs($salePrice - $newSalePrice) < 0.01) {
                 $salePrice = $newSalePrice;
@@ -604,7 +604,7 @@ Forms\Components\Section::make('Información del Comprobante')
         if (! $taxExempt && $taxId) {
             $tax = \App\Models\TaxRate::find($taxId);
             if ($tax) {
-                $taxRate = $tax->rate;
+                $taxRate = (float) $tax->rate;
                 $taxName = $tax->name;
 
                 // IVA sobre el subtotal en moneda factura (para mostrar al usuario)
@@ -612,7 +612,8 @@ Forms\Components\Section::make('Información del Comprobante')
             }
         }
 
-        $set('tax_rate', $taxRate);
+        // Siempre establecer los valores para consistencia
+        $set('tax_rate', number_format($taxRate, 2, '.', ''));
         $set('tax_name', $taxName);
         $set('tax_amount', number_format($taxAmount, 2, '.', ''));
 
@@ -640,7 +641,7 @@ Forms\Components\Section::make('Información del Comprobante')
     public static function recalculateSalePricesAfterCurrencyChange(Forms\Set $set, Forms\Get $get): void
     {
         $items = $get('items');
-        
+
         if ($items === null) {
             return;
         }
@@ -653,11 +654,11 @@ Forms\Components\Section::make('Información del Comprobante')
                 $unitPrice = (float) ($item['unit_price'] ?? 0);
                 $discount = (float) ($item['discount'] ?? 0);
                 $profit = (float) ($item['profit'] ?? 0);
-                
+
                 // Calcular costo en moneda base
                 $unitPriceAfterDiscount = $unitPrice * (1 - ($discount / 100));
                 $unitPriceInBase = $unitPriceAfterDiscount / $exchangeRate;
-                
+
                 // Recalcular precio de venta con redondeo
                 if ($unitPriceInBase > 0) {
                     $newSalePrice = round($unitPriceInBase * (1 + ($profit / 100)), 2, PHP_ROUND_HALF_UP);
